@@ -1,4 +1,7 @@
 # Pyxl
+
+Pyxl is a collaborative pixel art project similar to Reddit's r/place. Users work together to create a massive canvas of pixel art using a simple color picker. The canvas is protected by rules that ensure collaborative effort and prevent vandalism.
+
 ```
 .github
   └─ workflows
@@ -6,6 +9,7 @@
 .vscode
   └─ Recommended extensions and settings for VSCode users
 apps
+  └─ websocket
   └─ next.js
       ├─ Next.js 13
       ├─ React 18
