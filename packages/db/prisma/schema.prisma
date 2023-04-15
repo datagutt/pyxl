@@ -6,14 +6,30 @@ generator client {
 }
 
 datasource db {
-    provider = "postgresql"
+    provider = "sqlite"
     url      = env("DATABASE_URL")
 }
 
-model Post {
-    id      String @id @default(cuid())
-    title   String
-    content String
+model Color {
+    id        Int         @id @default(autoincrement())
+    color     String
+    RoomColor RoomColor[]
+}
+
+model RoomColor {
+    id      Int   @id @default(autoincrement())
+    color   Color @relation(fields: [colorId], references: [id])
+    colorId Int
+    room    Room  @relation(fields: [roomId], references: [id])
+    roomId  Int
+}
+
+model Room {
+    id        Int         @id @default(autoincrement())
+    name      String
+    createdAt DateTime    @default(now())
+    updatedAt DateTime    @updatedAt
+    colors    RoomColor[]
 }
 
 // NextAuth.js Models

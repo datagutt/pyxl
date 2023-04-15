@@ -6,9 +6,15 @@
  * tl;dr - this is where all the tRPC server stuff is created and plugged in.
  * The pieces you will need to use are documented accordingly near the end
  */
+
+import { type IncomingMessage } from "http";
+import type { GetServerSidePropsContext } from "next";
 import { TRPCError, initTRPC } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
+import { type NodeHTTPCreateContextFnOptions } from "@trpc/server/dist/adapters/node-http";
+import { getSession } from "next-auth/react";
 import superjson from "superjson";
+import type ws from "ws";
 import { ZodError } from "zod";
 
 import { getServerSession, type Session } from "@pyxl/auth";
@@ -48,12 +54,26 @@ const createInnerTRPCContext = (opts: CreateContextOptions) => {
  * process every request that goes through your tRPC endpoint
  * @link https://trpc.io/docs/context
  */
-export const createTRPCContext = async (opts: CreateNextContextOptions) => {
-  const { req, res } = opts;
+export const createTRPCContext = async (
+  opts:
+    | CreateNextContextOptions
+    | NodeHTTPCreateContextFnOptions<IncomingMessage, ws>,
+) => {
+  /*
+   * We can not always use "getServerAuthSession"  as it's not available in websocket server
+   * For optimized SSR we use "getServerAuthSession" when possible, as it is faster (one less HTTP-request)
+   */
+  let session: Session | null = null;
 
-  // Get the session from the server using the unstable_getServerSession wrapper function
-  const session = await getServerSession({ req, res });
-
+  const serverOpts = opts as GetServerSidePropsContext;
+  if (typeof serverOpts.res.getHeader === "function") {
+    session = await getServerSession({
+      req: serverOpts.req,
+      res: serverOpts.res,
+    });
+  } else {
+    session = await getSession(opts);
+  }
   return createInnerTRPCContext({
     session,
   });

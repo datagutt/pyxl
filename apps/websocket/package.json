@@ -1,14 +1,14 @@
 {
-  "name": "@pyxl/nextjs",
+  "name": "@pyxl/websocket",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "pnpm with-env next build",
-    "clean": "git clean -xdf .next .turbo node_modules",
-    "dev": "pnpm with-env next dev",
+    "build": "pnpm with-env tsc",
+    "clean": "git clean -xdf .turbo node_modules",
+    "dev": "dotenv -v PORT=3001 tsx watch src/wssDevServer.ts --tsconfig tsconfig.server.json ",
     "lint": "dotenv -v SKIP_ENV_VALIDATION=1 next lint",
     "lint:fix": "pnpm lint --fix",
-    "start": "pnpm with-env next start",
+    "start": "pnpm with-env node dist/prodServer.js",
     "type-check": "tsc --noEmit",
     "with-env": "dotenv -e ../../.env --"
   },
@@ -16,19 +16,15 @@
     "@pyxl/api": "^0.1.0",
     "@pyxl/auth": "^0.1.0",
     "@pyxl/db": "^0.1.0",
-    "@pyxl/tailwind-config": "^0.1.0",
-    "@tanstack/react-query": "^4.28.0",
     "@trpc/client": "^10.20.0",
     "@trpc/next": "^10.20.0",
     "@trpc/react-query": "^10.20.0",
     "@trpc/server": "^10.20.0",
-    "next": "^13.3.0",
-    "next-auth": "^4.22.0",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
     "superjson": "1.9.1",
+    "tsx": "^3.12.3",
     "zod": "^3.21.4",
-    "react-zoom-pan-pinch": "^3.0.7"
+    "ws": "^8.3.0",
+    "eventemitter3": "^5.0.0"
   },
   "devDependencies": {
     "@pyxl/eslint-config": "^0.1.0",
