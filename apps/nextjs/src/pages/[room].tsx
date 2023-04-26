@@ -11,9 +11,28 @@ export const Room = () => {
     return null;
   }
 
-  const { data: roomData } = api.room.byId.useQuery(room as string, {
-    enabled: !!room,
-  });
+  const { data: roomData } = api.room.byId.useQuery(
+    {
+      id: room as string,
+    },
+    {
+      enabled: !!room,
+    },
+  );
+
+  api.room.onJoin.useSubscription(
+    {
+      id: room as string,
+    },
+    {
+      onData: (data) => {
+        console.log("onJoin", data);
+      },
+      onError: (error) => {
+        console.error("onJoin", error);
+      },
+    },
+  );
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center py-2">
