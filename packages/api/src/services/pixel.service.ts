@@ -31,7 +31,16 @@ export class PixelService {
     });
   }
 
-  public async getRoom(roomId: number): Promise<RoomWithColors> {
+  private static instance: PixelService;
+
+  public static getInstance(): PixelService {
+    if (!PixelService.instance) {
+      PixelService.instance = new PixelService();
+    }
+    return PixelService.instance;
+  }
+
+  public async getRoom(roomId: string): Promise<RoomWithColors> {
     const room = await prisma.room.findUnique({
       where: { id: roomId },
       include: { colors: { select: { color: true } } },
@@ -80,8 +89,8 @@ export class PixelService {
     y: number,
     color: string,
     userId: string,
-    roomId: number,
-  ): Promise<void> {
+    roomId: string,
+  ): Promise<Pixel> {
     const room = await this.getRoom(roomId);
     if (!room) {
       throw new Error("Room not found");
@@ -98,5 +107,6 @@ export class PixelService {
       db.put(`${x}:${y}`, `${color}:${userId}`);
       eventEmitter.emit("room.pixel", { x, y, color, userId, room });
     });
+    return { x, y, color, userId, room };
   }
 }
