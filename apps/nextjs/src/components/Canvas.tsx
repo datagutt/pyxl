@@ -96,8 +96,8 @@ export default function Canvas({ width, height, room }: CanvasProps) {
     if (target !== canvasRef.current) return;
     if (touch) return;
 
-    const x = pageX - canvasRef.current.offsetLeft;
-    const y = pageY - canvasRef.current.offsetTop;
+    const x = pageX - (canvasRef?.current?.offsetLeft ?? 0);
+    const y = pageY - (canvasRef?.current?.offsetTop ?? 0);
     const color = Math.floor(Math.random() * 16777215).toString(16);
 
     handlePixel(x, y, color);
