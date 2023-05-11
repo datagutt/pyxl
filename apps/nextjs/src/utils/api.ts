@@ -25,9 +25,14 @@ function getEndingLink(ctx: NextPageContext | undefined) {
         if (!ctx?.req?.headers) {
           return {};
         }
+        const {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          connection: _connection,
+          ...headers
+        } = ctx.req.headers;
         // on ssr, forward client's headers to the server
         return {
-          ...ctx.req.headers,
+          ...headers,
           "x-ssr": "1",
         };
       },
@@ -64,7 +69,7 @@ export const api = createTRPCNext<AppRouter>({
       ],
     };
   },
-  ssr: true,
+  ssr: false,
 });
 
 export { type RouterInputs, type RouterOutputs } from "@pyxl/api";

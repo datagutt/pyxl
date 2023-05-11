@@ -11,10 +11,10 @@ export const roomRouter = createTRPCRouter({
   all: publicProcedure.query(({ ctx }) => {
     return ctx.prisma.room.findMany({ orderBy: { id: "desc" } });
   }),
-  byId: publicProcedure
-    .input(z.object({ id: z.string() }))
+  byName: publicProcedure
+    .input(z.object({ name: z.string() }))
     .query(({ ctx, input }) => {
-      return ctx.prisma.room.findFirst({ where: { id: input.id } });
+      return ctx.prisma.room.findFirst({ where: { name: input.name } });
     }),
   create: publicProcedure
     .input(
