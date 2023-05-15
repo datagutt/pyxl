@@ -7,10 +7,6 @@ const Room = () => {
   const router = useRouter();
   const { room } = router.query;
 
-  if (!room) {
-    return null;
-  }
-
   const {
     data: roomData,
     status,
@@ -23,6 +19,10 @@ const Room = () => {
       enabled: !!room,
     },
   );
+
+  if (!room) {
+    return null;
+  }
 
   if (status === "loading") {
     return (
