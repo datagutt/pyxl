@@ -51,7 +51,7 @@ export class PixelService {
     return room;
   }
 
-  public async getPixel(x: number, y: number, roomId: number): Promise<Pixel> {
+  public async getPixel(x: number, y: number, roomId: string): Promise<Pixel> {
     const room = await this.getRoom(roomId);
     const db = this.db.openDB({ name: room.id.toString() });
     return db.transaction(() => {
@@ -64,12 +64,12 @@ export class PixelService {
     });
   }
 
-  public async getPixels(roomId: number): Promise<Pixel[]> {
+  public async getPixels(roomId: string): Promise<Pixel[]> {
     const room = await this.getRoom(roomId);
     const db = this.db.openDB({ name: room.id.toString() });
     return db.transaction(() => {
       const pixels = [];
-      for (const { key, value } of this.db.getRange()) {
+      for (const { key, value } of db.getRange()) {
         const [x, y] = key.toString().split(":");
         const [color, userId] = value?.toString().split(":");
         pixels.push({

@@ -1,13 +1,20 @@
 import React, { useEffect, useRef, useState } from "react";
-import { type ReactZoomPanPinchRef, type ReactZoomPanPinchRef, TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
+import { Router } from "next/router";
+import {
+  TransformComponent,
+  TransformWrapper,
+  type ReactZoomPanPinchRef,
+} from "react-zoom-pan-pinch";
 
-import { api } from "~/utils/api";
+import { Room } from "@pyxl/db";
+
+import { RouterOutputs, api } from "~/utils/api";
 import { getCanvasScaledValue } from "~/utils/canvas";
 
 type CanvasProps = {
   width: number;
   height: number;
-  room: string;
+  room: Room;
 };
 
 const PIXEL_SIZE = 1;
@@ -27,35 +34,49 @@ export default function Canvas({ width, height, room }: CanvasProps) {
       canvas.style.height = `${height}px`;
       context.current = canvas.getContext("2d");
     }
-    for (let i = 0; i < 100; i++) {
+    /*for (let i = 0; i < 100; i++) {
       const color = Math.floor(Math.random() * 16777215).toString(16);
       const w = Math.floor(Math.random() * width);
       const h = Math.floor(Math.random() * height);
       for (let j = 0; j < 100; j++) {
         handlePixel(w + j, h + j, color);
       }
-    }
+    }*/
   }, [canvasRef, width, height]);
 
   const handlePixel = (x: number, y: number, color: string) => {
     if (!context || !context.current) {
       return;
     }
-  
-    console.log("handlePixel", x, y, color, context);
-  
+
     const scaledX = Math.floor(x / multiplier);
     const scaledY = Math.floor(y / multiplier);
-  
+
     context.current.fillStyle = `#${color}`;
     context.current?.fillRect(scaledX, scaledY, PIXEL_SIZE, PIXEL_SIZE);
   };
 
   const mutatePixel = api.room.place.useMutation();
+  api.room.getPixels.useQuery(
+    {
+      id: room.id,
+    },
+    {
+      onSuccess: (data) => {
+        console.log("getPixels", data);
+        data.forEach((pixel) => {
+          handlePixel(pixel.x, pixel.y, pixel.color);
+        });
+      },
+      onError: (error) => {
+        console.error("getPixels", error);
+      },
+    },
+  );
   const placePixel = (x: number, y: number, color: string) => {
     mutatePixel.mutate(
       {
-        roomId: room,
+        roomId: room.id,
         x,
         y,
         color,
@@ -72,16 +93,34 @@ export default function Canvas({ width, height, room }: CanvasProps) {
     );
   };
 
-  api.room.onJoin.useSubscription(
+  api.room.onPlace.useSubscription(
     {
-      id: room,
+      id: room.id,
     },
     {
       onData: (data) => {
-        console.log("onJoin", data);
+        console.log("onPlace", data);
+        handlePixel(data.x, data.y, data.color);
       },
       onError: (error) => {
-        console.error("onJoin", error);
+        console.error("onPlace", error);
+      },
+    },
+  );
+
+  api.room.onBatchPixels.useSubscription(
+    {
+      id: room.id,
+    },
+    {
+      onData: (data) => {
+        console.log("onBatchPixels", data);
+        data.forEach((pixel) => {
+          handlePixel(pixel.x, pixel.y, pixel.color);
+        });
+      },
+      onError: (error) => {
+        console.error("onBatchPixels", error);
       },
     },
   );
@@ -91,7 +130,7 @@ export default function Canvas({ width, height, room }: CanvasProps) {
     switch (ev.button) {
       case 0:
         setShouldPlacePixel(true);
-          handleClick(ev.clientX, ev.clientY, ev.target);
+        handleClick(ev.clientX, ev.clientY, ev.target);
         break;
     }
   };
@@ -101,11 +140,15 @@ export default function Canvas({ width, height, room }: CanvasProps) {
     setShouldPlacePixel(false);
   };
 
-
   document.ontouchstart = (ev) => {
-    if(!ev?.touches?.[0]) return;
+    if (!ev?.touches?.[0]) return;
     clearTimeout(shouldColorPickTimeout?.current);
-    handleClick(ev?.touches?.[0]?.clientX, ev?.touches?.[0].clientY, ev.target, true);
+    handleClick(
+      ev?.touches?.[0]?.clientX,
+      ev?.touches?.[0].clientY,
+      ev.target,
+      true,
+    );
   };
 
   document.ontouchmove = (ev) => {
@@ -116,14 +159,13 @@ export default function Canvas({ width, height, room }: CanvasProps) {
     if (target !== canvasRef.current) {
       return;
     }
-    
+
     if (touch) {
       shouldColorPickTimeout.current = setTimeout(() => {
         setShouldPlacePixel(false);
 
         document.ontouchend = null;
         document.ontouchmove = null;
-
       }, 500);
     }
 
@@ -141,10 +183,13 @@ export default function Canvas({ width, height, room }: CanvasProps) {
       const newX = Math.floor((x - canvasRect.left) * cssScaleX);
       const newY = Math.floor((y - canvasRect.top) * cssScaleY);
 
-      handlePixel(newX, newY, color);
+      placePixel(newX, newY, color);
     }
   };
 
+  if (!room) {
+    return null;
+  }
 
   return (
     <TransformWrapper
@@ -155,13 +200,14 @@ export default function Canvas({ width, height, room }: CanvasProps) {
       doubleClick={{ disabled: true }}
       ref={transformWrapperRef}
       limitToBounds
+      disablePadding
       onZoom={(zoom) => {
         setMultiplier(zoom.state.scale);
       }}
     >
       {({ zoomIn, zoomOut, resetTransform }) => (
         <React.Fragment>
-          <div className="absolute top-5 z-10 mx-auto flex h-24">
+          <div className="absolute left-5 top-5 z-10 mx-auto flex h-24">
             <div className="my-2 flex flex-col justify-center gap-2">
               <button
                 onClick={() => zoomIn(0.9, 200)}
@@ -191,10 +237,7 @@ export default function Canvas({ width, height, room }: CanvasProps) {
           >
             <canvas
               ref={canvasRef}
-              style={{
-                imageRendering: "pixelated",
-                cursor: "hand",
-              }}
+              className="pixelated relative min-w-fit max-w-fit origin-top-left bg-white opacity-100"
             />
           </TransformComponent>
         </React.Fragment>

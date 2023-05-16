@@ -28,22 +28,29 @@ export const roomRouter = createTRPCRouter({
   delete: publicProcedure.input(z.string()).mutation(({ ctx, input }) => {
     return ctx.prisma.room.delete({ where: { id: input } });
   }),
-  onJoin: publicProcedure
+  getPixels: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(({ input }) => {
+      const pixelService = PixelService.getInstance();
+      const pixels = pixelService.getPixels(input.id);
+      return pixels;
+    }),
+  onBatchPixels: publicProcedure
     .input(
       z.object({
         id: z.string().nonempty(),
       }),
     )
     .subscription(() => {
-      return observable<Room>((emit) => {
-        const onAdd = (data: Room) => {
+      return observable<Pixel[]>((emit) => {
+        const onBatchPixels = (data: Pixel[]) => {
           // emit data to client
           emit.next(data);
         };
-        ee.on("room.info", onAdd);
+        ee.on("room.batchPixels", onBatchPixels);
         // unsubscribe function when client disconnects or stops subscribing
         return () => {
-          ee.off("room.info", onAdd);
+          ee.off("room.batchPixels", onBatchPixels);
         };
       });
     }),
