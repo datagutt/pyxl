@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider = "prisma-client-js"
+    provider        = "prisma-client-js"
+    previewFeatures = ["jsonProtocol"]
 }
 
 datasource db {
@@ -11,21 +12,21 @@ datasource db {
 }
 
 model Color {
-    id        Int         @id @default(autoincrement())
+    id        String      @id @default(cuid())
     color     String
     RoomColor RoomColor[]
 }
 
 model RoomColor {
-    id      Int   @id @default(autoincrement())
-    color   Color @relation(fields: [colorId], references: [id])
-    colorId Int
-    room    Room  @relation(fields: [roomId], references: [id])
-    roomId  Int
+    id      String @id @default(cuid())
+    color   Color  @relation(fields: [colorId], references: [id])
+    colorId String
+    room    Room   @relation(fields: [roomId], references: [id])
+    roomId  String
 }
 
 model Room {
-    id        Int         @id @default(autoincrement())
+    id        String      @id @default(cuid())
     name      String      @unique
     createdAt DateTime    @default(now())
     updatedAt DateTime    @updatedAt
