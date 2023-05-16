@@ -1,7 +1,8 @@
-import React, { useEffect, useRef } from "react";
-import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
+import React, { useEffect, useRef, useState } from "react";
+import { type ReactZoomPanPinchRef, type ReactZoomPanPinchRef, TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 
 import { api } from "~/utils/api";
+import { getCanvasScaledValue } from "~/utils/canvas";
 
 type CanvasProps = {
   width: number;
@@ -9,9 +10,15 @@ type CanvasProps = {
   room: string;
 };
 
+const PIXEL_SIZE = 1;
+
 export default function Canvas({ width, height, room }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const transformWrapperRef = useRef<ReactZoomPanPinchRef>(null);
   const context = useRef<CanvasRenderingContext2D | null>(null);
+  const [multiplier, setMultiplier] = useState(1);
+  const [shouldPlacePixel, setShouldPlacePixel] = useState(false);
+  const shouldColorPickTimeout = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -34,9 +41,14 @@ export default function Canvas({ width, height, room }: CanvasProps) {
     if (!context || !context.current) {
       return;
     }
+  
     console.log("handlePixel", x, y, color, context);
+  
+    const scaledX = Math.floor(x / multiplier);
+    const scaledY = Math.floor(y / multiplier);
+  
     context.current.fillStyle = `#${color}`;
-    context.current?.fillRect(x, y, 1, 1);
+    context.current?.fillRect(scaledX, scaledY, PIXEL_SIZE, PIXEL_SIZE);
   };
 
   const mutatePixel = api.room.place.useMutation();
@@ -75,55 +87,90 @@ export default function Canvas({ width, height, room }: CanvasProps) {
   );
 
   window.oncontextmenu = () => false;
-  document.onmousedown = ({ button, pageX, pageY, target }) => {
-    switch (button) {
+  document.onmousedown = (ev) => {
+    switch (ev.button) {
       case 0:
-        handleClick(pageX, pageY, target);
+        setShouldPlacePixel(true);
+          handleClick(ev.clientX, ev.clientY, ev.target);
         break;
     }
   };
 
-  document.ontouchstart = ({ touches: [{ pageX, pageY, target }] }) =>
-    handleClick(pageX, pageY, target, true);
-
-  const handleClick = (
-    pageX: number,
-    pageY: number,
-    target: any,
-    touch = false,
-  ) => {
-    console.log(target, canvasRef.current);
-    if (target !== canvasRef.current) return;
-    if (touch) return;
-
-    const x = pageX - (canvasRef?.current?.offsetLeft ?? 0);
-    const y = pageY - (canvasRef?.current?.offsetTop ?? 0);
-    const color = Math.floor(Math.random() * 16777215).toString(16);
-
-    handlePixel(x, y, color);
+  document.onmousemove = (ev) => {
+    clearTimeout(shouldColorPickTimeout?.current);
+    setShouldPlacePixel(false);
   };
+
+
+  document.ontouchstart = (ev) => {
+    if(!ev?.touches?.[0]) return;
+    clearTimeout(shouldColorPickTimeout?.current);
+    handleClick(ev?.touches?.[0]?.clientX, ev?.touches?.[0].clientY, ev.target, true);
+  };
+
+  document.ontouchmove = (ev) => {
+    setShouldPlacePixel(false);
+  };
+
+  const handleClick = (x: number, y: number, target: any, touch = false) => {
+    if (target !== canvasRef.current) {
+      return;
+    }
+    
+    if (touch) {
+      shouldColorPickTimeout.current = setTimeout(() => {
+        setShouldPlacePixel(false);
+
+        document.ontouchend = null;
+        document.ontouchmove = null;
+
+      }, 500);
+    }
+
+    if (shouldPlacePixel) {
+      const color = Math.floor(Math.random() * 16777215).toString(16);
+      const cssScaleX = getCanvasScaledValue(
+        canvasRef.current!.width,
+        canvasRef.current!.offsetWidth,
+      );
+      const cssScaleY = getCanvasScaledValue(
+        canvasRef.current!.height,
+        canvasRef.current!.offsetHeight,
+      );
+      const canvasRect = canvasRef.current!.getBoundingClientRect();
+      const newX = Math.floor((x - canvasRect.left) * cssScaleX);
+      const newY = Math.floor((y - canvasRect.top) * cssScaleY);
+
+      handlePixel(newX, newY, color);
+    }
+  };
+
 
   return (
     <TransformWrapper
       initialScale={1}
-      initialPositionX={width / 2}
-      initialPositionY={height / 2}
-      limitToBounds
       centerOnInit
       centerZoomedOut
+      wheel={{ step: 0.08 }}
+      doubleClick={{ disabled: true }}
+      ref={transformWrapperRef}
+      limitToBounds
+      onZoom={(zoom) => {
+        setMultiplier(zoom.state.scale);
+      }}
     >
       {({ zoomIn, zoomOut, resetTransform }) => (
         <React.Fragment>
-          <div className="absolute top-0 z-10 mx-auto flex h-24 w-full max-w-xl">
+          <div className="absolute top-5 z-10 mx-auto flex h-24">
             <div className="my-2 flex flex-col justify-center gap-2">
               <button
-                onClick={() => zoomIn(0.1)}
+                onClick={() => zoomIn(0.9, 200)}
                 className="rounded-md bg-gray-200 p-1"
               >
                 +
               </button>
               <button
-                onClick={() => zoomOut(0.1)}
+                onClick={() => zoomOut(0.9, 200)}
                 className="rounded-md bg-gray-200 p-1"
               >
                 -
