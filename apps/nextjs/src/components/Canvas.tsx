@@ -17,14 +17,21 @@ type CanvasProps = {
   room: RoomWithColors;
 };
 
+type PixelPosition = {
+  x: number;
+  y: number;
+  clientX: number;
+  clientY: number;
+};
 const PIXEL_SIZE = 1;
-const SELECTED_PIXEL_BORDER_WIDTH = 2;
 
 export default function Canvas({ width, height, room }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const transformWrapperRef = useRef<ReactZoomPanPinchRef>(null);
   const context = useRef<CanvasRenderingContext2D | null>(null);
   const colorPickerRef = useRef<HTMLDivElement>(null);
+  const hoverPixelRef = useRef<HTMLDivElement>(null);
+  const hoverPixelPositionRef = useRef({ x: 0, y: 0 });
   const [multiplier, setMultiplier] = useState(1);
   const [shouldPlacePixel, setShouldPlacePixel] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -39,10 +46,13 @@ export default function Canvas({ width, height, room }: CanvasProps) {
     x: number;
     y: number;
   } | null>(null);
-  const [previousSelectedPixel, setPreviousSelectedPixel] = useState<{
+  const [hoverPixelPosition, setHoverPixelPosition] = useState<{
     x: number;
     y: number;
-  } | null>(null);
+  }>({
+    x: 0,
+    y: 0,
+  });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -137,9 +147,8 @@ export default function Canvas({ width, height, room }: CanvasProps) {
 
   window.oncontextmenu = () => false;
 
-  const handleClick = (ev: MouseEvent | TouchEvent) => {
+  const getPixelPos = (ev: MouseEvent | TouchEvent): PixelPosition => {
     let clientX, clientY;
-
     if (ev instanceof MouseEvent) {
       clientX = ev.clientX;
       clientY = ev.clientY;
@@ -149,7 +158,7 @@ export default function Canvas({ width, height, room }: CanvasProps) {
     }
 
     if (!clientX || !clientY) {
-      return;
+      return { x: 0, y: 0, clientX: 0, clientY: 0 };
     }
 
     if (canvasRef.current) {
@@ -164,18 +173,23 @@ export default function Canvas({ width, height, room }: CanvasProps) {
       const canvasRect = canvasRef.current!.getBoundingClientRect();
       const x = Math.floor((clientX - canvasRect.left) * cssScaleX);
       const y = Math.floor((clientY - canvasRect.top) * cssScaleY);
+      return { x, y, clientX, clientY };
+    }
+    return { x: 0, y: 0, clientX: 0, clientY: 0 };
+  };
 
-      console.log("x", x, "y", y, shouldPlacePixel);
+  const handleClick = (ev: MouseEvent | TouchEvent) => {
+    const { x, y, clientX, clientY } = getPixelPos(ev);
 
-      if (x >= 0 && x < width && y >= 0 && y < height) {
-        if (shouldPlacePixel) {
-          setColorPickerPosition({ x: clientX, y: clientY });
-          setShowColorPicker(true);
-        } else {
-          setSelectedPixel({ x, y });
-          setPreviousSelectedPixel({ x, y });
-          setShowColorPicker(false);
-        }
+    console.log("x", x, "y", y, shouldPlacePixel);
+
+    if (x >= 0 && x < width && y >= 0 && y < height) {
+      if (shouldPlacePixel) {
+        setColorPickerPosition({ x: clientX, y: clientY });
+        setShowColorPicker(true);
+      } else {
+        setSelectedPixel({ x, y });
+        setShowColorPicker(false);
       }
     }
   };
@@ -199,6 +213,24 @@ export default function Canvas({ width, height, room }: CanvasProps) {
     handleClick(ev);
   };
 
+  const updateHoverPixelPosition = (ev: MouseEvent | TouchEvent) => {
+    const { x, y } = getPixelPos(ev);
+
+    setHoverPixelPosition({ x, y });
+  };
+
+  const handleColorChange = (color: any) => {
+    if (!selectedPixel) {
+      return;
+    }
+    setSelectedColor(color.hex);
+
+    placePixel(selectedPixel.x, selectedPixel.y);
+    setSelectedPixel(null);
+    setShowColorPicker(false);
+    setShouldPlacePixel(false);
+  };
+
   useEffect(() => {
     document.addEventListener("mousedown", onMouseDown);
     document.addEventListener("touchstart", onTouchStart);
@@ -207,12 +239,14 @@ export default function Canvas({ width, height, room }: CanvasProps) {
       ev.preventDefault();
     });
 
-    document.addEventListener("mousemove", () => {
+    document.addEventListener("mousemove", (ev) => {
       setShouldPlacePixel(false);
+      updateHoverPixelPosition(ev);
     });
 
-    document.addEventListener("touchmove", () => {
+    document.addEventListener("touchmove", (ev) => {
       setShouldPlacePixel(false);
+      updateHoverPixelPosition(ev);
     });
     return () => {
       document.removeEventListener("mousedown", onMouseDown);
@@ -259,17 +293,21 @@ export default function Canvas({ width, height, room }: CanvasProps) {
     };
   }, [colorPickerRef]);
 
-  const handleColorChange = (color: any) => {
-    if (!selectedPixel) {
-      return;
-    }
-    setSelectedColor(color.hex);
+  useEffect(() => {
+    const update = () => {
+      hoverPixelPositionRef.current = hoverPixelPosition;
 
-    placePixel(selectedPixel.x, selectedPixel.y);
-    setSelectedPixel(null);
-    setShowColorPicker(false);
-    setShouldPlacePixel(false);
-  };
+      if (hoverPixelRef.current) {
+        hoverPixelRef.current.style.left = `${hoverPixelPosition.x}px`;
+        hoverPixelRef.current.style.top = `${hoverPixelPosition.y}px`;
+      }
+      requestAnimationFrame(update);
+    };
+    const id = requestAnimationFrame(update);
+    return () => {
+      cancelAnimationFrame(id);
+    };
+  }, [hoverPixelPosition]);
 
   if (!room) {
     return null;
@@ -329,6 +367,7 @@ export default function Canvas({ width, height, room }: CanvasProps) {
               />
             </div>
           )}
+
           <TransformComponent
             wrapperStyle={{
               width,
@@ -339,6 +378,21 @@ export default function Canvas({ width, height, room }: CanvasProps) {
               ref={canvasRef}
               className="pixelated cursor-cross relative min-w-fit max-w-fit origin-top-left bg-white opacity-100"
             />
+            {hoverPixelPosition && (
+              <div
+                ref={hoverPixelRef}
+                style={{
+                  position: "absolute",
+                  width: `${PIXEL_SIZE * multiplier * 10}px`,
+                  height: `${PIXEL_SIZE * multiplier * 10}px`,
+                  backgroundColor: "#fff",
+                  border: "1px solid #000",
+                  pointerEvents: "none",
+                  left: `${hoverPixelPositionRef.current.x}px`,
+                  top: `${hoverPixelPositionRef.current.y}px`,
+                }}
+              />
+            )}
           </TransformComponent>
         </React.Fragment>
       )}
