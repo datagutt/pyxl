@@ -7,30 +7,27 @@ generator client {
 }
 
 datasource db {
-    provider = "sqlite"
-    url      = env("DATABASE_URL")
+    provider          = "postgresql"
+    url               = env("POSTGRES_PRISMA_URL") // uses connection pooling
+    directUrl         = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+    shadowDatabaseUrl = env("POSTGRES_URL_NON_POOLING") // used for migrations
 }
 
 model Color {
-    id        String      @id @default(cuid())
-    color     String
-    RoomColor RoomColor[]
-}
+    id     String  @id @default(cuid())
+    value  String
+    Room   Room?   @relation(fields: [roomId], references: [id])
+    roomId String?
 
-model RoomColor {
-    id      String @id @default(cuid())
-    color   Color  @relation(fields: [colorId], references: [id])
-    colorId String
-    room    Room   @relation(fields: [roomId], references: [id])
-    roomId  String
+    @@unique([value, roomId])
 }
 
 model Room {
-    id        String      @id @default(cuid())
-    name      String      @unique
-    createdAt DateTime    @default(now())
-    updatedAt DateTime    @updatedAt
-    colors    RoomColor[]
+    id        String   @id @default(cuid())
+    name      String   @unique
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    colors    Color[]
 }
 
 // NextAuth.js Models

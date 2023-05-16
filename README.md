@@ -63,9 +63,7 @@ Let's deploy the Next.js application to [Vercel](https://vercel.com/). If you ha
 
 <img width="927" alt="Vercel deployment settings" src="https://user-images.githubusercontent.com/11340449/201974887-b6403a32-5570-4ce6-b146-c486c0dbd244.png">
 
-> The install command filters out the expo package and saves a few second (and cache size) of dependency installation. The build command makes us build the application using Turbo.
-
-2. Add your `DATABASE_URL` environment variable.
+2. Add your `POSTGRES_URL`, `POSTGRES_PRSIMA_URL` and `POSTGRES_URL_NON_POOLING` environment variables.
 
 3. Done! Your app should successfully deploy. Assign your domain and use that instead of `localhost` for the `url` in the Expo app so that your Expo app can communicate with your backend when you are not in development.
 

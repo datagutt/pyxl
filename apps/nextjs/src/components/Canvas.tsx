@@ -1,31 +1,48 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Router } from "next/router";
+import React, { use, useCallback, useEffect, useRef, useState } from "react";
+import { GithubPicker } from "react-color";
 import {
   TransformComponent,
   TransformWrapper,
   type ReactZoomPanPinchRef,
 } from "react-zoom-pan-pinch";
 
-import { Room } from "@pyxl/db";
+import { RoomWithColors } from "@pyxl/api/src/services/pixel.service";
 
-import { RouterOutputs, api } from "~/utils/api";
+import { api } from "~/utils/api";
 import { getCanvasScaledValue } from "~/utils/canvas";
 
 type CanvasProps = {
   width: number;
   height: number;
-  room: Room;
+  room: RoomWithColors;
 };
 
 const PIXEL_SIZE = 1;
+const SELECTED_PIXEL_BORDER_WIDTH = 2;
 
 export default function Canvas({ width, height, room }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const transformWrapperRef = useRef<ReactZoomPanPinchRef>(null);
   const context = useRef<CanvasRenderingContext2D | null>(null);
+  const colorPickerRef = useRef<HTMLDivElement>(null);
   const [multiplier, setMultiplier] = useState(1);
   const [shouldPlacePixel, setShouldPlacePixel] = useState(false);
-  const shouldColorPickTimeout = useRef<NodeJS.Timeout>();
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [colorPickerPosition, setColorPickerPosition] = useState({
+    x: 0,
+    y: 0,
+  });
+  const [selectedColor, setSelectedColor] = useState<string>(
+    room?.colors[0]?.value ?? "#000000",
+  );
+  const [selectedPixel, setSelectedPixel] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+  const [previousSelectedPixel, setPreviousSelectedPixel] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -34,14 +51,6 @@ export default function Canvas({ width, height, room }: CanvasProps) {
       canvas.style.height = `${height}px`;
       context.current = canvas.getContext("2d");
     }
-    /*for (let i = 0; i < 100; i++) {
-      const color = Math.floor(Math.random() * 16777215).toString(16);
-      const w = Math.floor(Math.random() * width);
-      const h = Math.floor(Math.random() * height);
-      for (let j = 0; j < 100; j++) {
-        handlePixel(w + j, h + j, color);
-      }
-    }*/
   }, [canvasRef, width, height]);
 
   const handlePixel = (x: number, y: number, color: string) => {
@@ -52,7 +61,7 @@ export default function Canvas({ width, height, room }: CanvasProps) {
     const scaledX = Math.floor(x / multiplier);
     const scaledY = Math.floor(y / multiplier);
 
-    context.current.fillStyle = `#${color}`;
+    context.current.fillStyle = color;
     context.current?.fillRect(scaledX, scaledY, PIXEL_SIZE, PIXEL_SIZE);
   };
 
@@ -73,18 +82,19 @@ export default function Canvas({ width, height, room }: CanvasProps) {
       },
     },
   );
-  const placePixel = (x: number, y: number, color: string) => {
+  const placePixel = (x: number, y: number) => {
+    console.log("WE PLACED", x, y, selectedColor);
     mutatePixel.mutate(
       {
         roomId: room.id,
         x,
         y,
-        color,
+        color: selectedColor,
       },
       {
         onSuccess: (data) => {
           console.log("placePixel", data);
-          handlePixel(x, y, color);
+          handlePixel(x, y, selectedColor);
         },
         onError: (error) => {
           console.error("placePixel", error);
@@ -126,51 +136,23 @@ export default function Canvas({ width, height, room }: CanvasProps) {
   );
 
   window.oncontextmenu = () => false;
-  document.onmousedown = (ev) => {
-    switch (ev.button) {
-      case 0:
-        setShouldPlacePixel(true);
-        handleClick(ev.clientX, ev.clientY, ev.target);
-        break;
+
+  const handleClick = (ev: MouseEvent | TouchEvent) => {
+    let clientX, clientY;
+
+    if (ev instanceof MouseEvent) {
+      clientX = ev.clientX;
+      clientY = ev.clientY;
+    } else if (ev.touches.length > 0) {
+      clientX = ev?.touches?.[0]?.clientX;
+      clientY = ev?.touches?.[0]?.clientY;
     }
-  };
 
-  document.onmousemove = (ev) => {
-    clearTimeout(shouldColorPickTimeout?.current);
-    setShouldPlacePixel(false);
-  };
-
-  document.ontouchstart = (ev) => {
-    if (!ev?.touches?.[0]) return;
-    clearTimeout(shouldColorPickTimeout?.current);
-    handleClick(
-      ev?.touches?.[0]?.clientX,
-      ev?.touches?.[0].clientY,
-      ev.target,
-      true,
-    );
-  };
-
-  document.ontouchmove = (ev) => {
-    setShouldPlacePixel(false);
-  };
-
-  const handleClick = (x: number, y: number, target: any, touch = false) => {
-    if (target !== canvasRef.current) {
+    if (!clientX || !clientY) {
       return;
     }
 
-    if (touch) {
-      shouldColorPickTimeout.current = setTimeout(() => {
-        setShouldPlacePixel(false);
-
-        document.ontouchend = null;
-        document.ontouchmove = null;
-      }, 500);
-    }
-
-    if (shouldPlacePixel) {
-      const color = Math.floor(Math.random() * 16777215).toString(16);
+    if (canvasRef.current) {
       const cssScaleX = getCanvasScaledValue(
         canvasRef.current!.width,
         canvasRef.current!.offsetWidth,
@@ -180,11 +162,113 @@ export default function Canvas({ width, height, room }: CanvasProps) {
         canvasRef.current!.offsetHeight,
       );
       const canvasRect = canvasRef.current!.getBoundingClientRect();
-      const newX = Math.floor((x - canvasRect.left) * cssScaleX);
-      const newY = Math.floor((y - canvasRect.top) * cssScaleY);
+      const x = Math.floor((clientX - canvasRect.left) * cssScaleX);
+      const y = Math.floor((clientY - canvasRect.top) * cssScaleY);
 
-      placePixel(newX, newY, color);
+      console.log("x", x, "y", y, shouldPlacePixel);
+
+      if (x >= 0 && x < width && y >= 0 && y < height) {
+        if (shouldPlacePixel) {
+          setColorPickerPosition({ x: clientX, y: clientY });
+          setShowColorPicker(true);
+        } else {
+          setSelectedPixel({ x, y });
+          setPreviousSelectedPixel({ x, y });
+          setShowColorPicker(false);
+        }
+      }
     }
+  };
+
+  const onMouseDown = (ev: MouseEvent) => {
+    if (ev.target !== canvasRef.current) {
+      return;
+    }
+    switch (ev.button) {
+      case 0:
+        setShouldPlacePixel(true);
+        handleClick(ev);
+        break;
+    }
+  };
+  const onTouchStart = (ev: TouchEvent) => {
+    if (ev.target !== canvasRef.current) {
+      return;
+    }
+    setShouldPlacePixel(true);
+    handleClick(ev);
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", onMouseDown);
+    document.addEventListener("touchstart", onTouchStart);
+
+    document.addEventListener("contextmenu", (ev) => {
+      ev.preventDefault();
+    });
+
+    document.addEventListener("mousemove", () => {
+      setShouldPlacePixel(false);
+    });
+
+    document.addEventListener("touchmove", () => {
+      setShouldPlacePixel(false);
+    });
+    return () => {
+      document.removeEventListener("mousedown", onMouseDown);
+      document.removeEventListener("touchstart", onTouchStart);
+      document.removeEventListener("contextmenu", (ev) => {
+        ev.preventDefault();
+      });
+      document.removeEventListener("mousemove", () => {
+        setShouldPlacePixel(false);
+      });
+      document.removeEventListener("touchmove", () => {
+        setShouldPlacePixel(false);
+      });
+    };
+  }, [width, height, shouldPlacePixel]);
+
+  useEffect(() => {
+    if (
+      showColorPicker &&
+      colorPickerRef.current &&
+      typeof colorPickerRef.current.addEventListener === "function"
+    ) {
+      colorPickerRef.current.addEventListener("mousedown", (ev) => {
+        ev.stopPropagation();
+      });
+      colorPickerRef.current.addEventListener("touchstart", (ev) => {
+        ev.stopPropagation();
+      });
+    }
+    return () => {
+      if (
+        !showColorPicker ||
+        !colorPickerRef.current ||
+        typeof colorPickerRef.current.addEventListener === "function"
+      ) {
+        return;
+      }
+      colorPickerRef.current?.removeEventListener("mousedown", (ev) => {
+        ev.stopPropagation();
+      });
+      colorPickerRef.current?.removeEventListener("touchstart", (ev) => {
+        ev.stopPropagation();
+      });
+    };
+  }, [colorPickerRef]);
+
+  const handleColorChange = (color: any) => {
+    if (!selectedPixel) {
+      return;
+    }
+    setSelectedColor(color.hex);
+
+    placePixel(selectedPixel.x, selectedPixel.y);
+    setSelectedPixel(null);
+    setShowColorPicker(false);
+    setShouldPlacePixel(false);
   };
 
   if (!room) {
@@ -229,6 +313,22 @@ export default function Canvas({ width, height, room }: CanvasProps) {
               </button>
             </div>
           </div>
+          {showColorPicker && (
+            <div
+              className="absolute z-10"
+              style={{
+                left: colorPickerPosition.x,
+                top: colorPickerPosition.y,
+              }}
+            >
+              <GithubPicker
+                ref={colorPickerRef}
+                colors={room.colors.map((color) => color.value)}
+                onChange={handleColorChange}
+                onClose={() => setShowColorPicker(false)}
+              />
+            </div>
+          )}
           <TransformComponent
             wrapperStyle={{
               width,
@@ -237,7 +337,7 @@ export default function Canvas({ width, height, room }: CanvasProps) {
           >
             <canvas
               ref={canvasRef}
-              className="pixelated relative min-w-fit max-w-fit origin-top-left bg-white opacity-100"
+              className="pixelated cursor-cross relative min-w-fit max-w-fit origin-top-left bg-white opacity-100"
             />
           </TransformComponent>
         </React.Fragment>

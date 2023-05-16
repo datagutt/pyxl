@@ -33,7 +33,9 @@
   },
   "globalEnv": [
     "CI",
-    "DATABASE_URL",
+    "POSTGRES_URL",
+    "POSTGRES_PRISMA_URL",
+    "POSTGRES_URL_NON_POOLING",
     "DISCORD_CLIENT_ID",
     "DISCORD_CLIENT_SECRET",
     "WS_URL",

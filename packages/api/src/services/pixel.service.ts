@@ -13,7 +13,7 @@ export type Pixel = {
 };
 
 export type RoomWithColors = Room & {
-  colors: { color: Color }[];
+  colors: Color[];
 };
 
 export class PixelService {
@@ -43,7 +43,7 @@ export class PixelService {
   public async getRoom(roomId: string): Promise<RoomWithColors> {
     const room = await prisma.room.findUnique({
       where: { id: roomId },
-      include: { colors: { select: { color: true } } },
+      include: { colors: true },
     });
     if (!room) {
       throw new Error("Room not found");
@@ -97,7 +97,9 @@ export class PixelService {
     }
 
     // check if  color is valid for room
-    const dbColor = room.colors.find(({ color }) => color === color);
+    const dbColor = room.colors.find(
+      (c) => c.value?.toLowerCase() === color?.toLowerCase(),
+    );
     if (!dbColor) {
       throw new Error("Invalid color");
     }
