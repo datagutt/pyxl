@@ -25,9 +25,9 @@ type PixelPosition = {
 
 export const GAME_CONFIG = {
   PIXEL_SIZE: 30,
-  PIXEL_WIDTH: 250,
-  PIXEL_HEIGHT: 250,
-  CANVAS_SIZE: 30 * 250,
+  PIXEL_WIDTH: 100,
+  PIXEL_HEIGHT: 100,
+  CANVAS_SIZE: 30 * 100,
 };
 
 export default function Canvas({ room }: CanvasProps) {
