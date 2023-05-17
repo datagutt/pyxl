@@ -27,14 +27,14 @@ const Room = () => {
   }
 
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden bg-gray-900">
+    <div className="flex h-screen w-full flex-col overflow-hidden bg-gray-900">
       <Head>
         <title>{roomData?.name} | pyxl.place</title>
       </Head>
 
       <div className="relative m-0 h-full w-full touch-none select-none overflow-hidden p-0">
         <div className="flex flex-col items-center justify-center py-2">
-          {roomData && <Canvas width={960} height={540} room={roomData} />}
+          {roomData && <Canvas room={roomData} />}
 
           {status === "loading" && (
             <main className="flex w-full flex-1 flex-col items-center justify-center px-20 text-center text-white">

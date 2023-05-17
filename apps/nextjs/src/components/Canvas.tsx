@@ -1,5 +1,5 @@
-import React, { use, useCallback, useEffect, useRef, useState } from "react";
-import { GithubPicker } from "react-color";
+import React, { useEffect, useRef, useState } from "react";
+import GithubPicker from "@uiw/react-color-github";
 import {
   TransformComponent,
   TransformWrapper,
@@ -9,7 +9,6 @@ import {
 import { RoomWithColors } from "@pyxl/api/src/services/pixel.service";
 
 import { api } from "~/utils/api";
-import { getCanvasScaledValue } from "~/utils/canvas";
 
 type CanvasProps = {
   width: number;
@@ -23,15 +22,20 @@ type PixelPosition = {
   clientX: number;
   clientY: number;
 };
-const PIXEL_SIZE = 1;
 
-export default function Canvas({ width, height, room }: CanvasProps) {
+export const GAME_CONFIG = {
+  PIXEL_SIZE: 30,
+  PIXEL_WIDTH: 250,
+  PIXEL_HEIGHT: 250,
+  CANVAS_SIZE: 30 * 250,
+};
+
+export default function Canvas({ room }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const transformWrapperRef = useRef<ReactZoomPanPinchRef>(null);
   const context = useRef<CanvasRenderingContext2D | null>(null);
-  const colorPickerRef = useRef<HTMLDivElement>(null);
+  const colorPickerRef = useRef<GithubPicker>(null);
   const hoverPixelRef = useRef<HTMLDivElement>(null);
-  const hoverPixelPositionRef = useRef({ x: 0, y: 0 });
   const [multiplier, setMultiplier] = useState(1);
   const [shouldPlacePixel, setShouldPlacePixel] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -57,11 +61,9 @@ export default function Canvas({ width, height, room }: CanvasProps) {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
       context.current = canvas.getContext("2d");
     }
-  }, [canvasRef, width, height]);
+  }, [canvasRef]);
 
   const handlePixel = (x: number, y: number, color: string) => {
     if (!context || !context.current) {
@@ -72,7 +74,12 @@ export default function Canvas({ width, height, room }: CanvasProps) {
     const scaledY = Math.floor(y / multiplier);
 
     context.current.fillStyle = color;
-    context.current?.fillRect(scaledX, scaledY, PIXEL_SIZE, PIXEL_SIZE);
+    context.current?.fillRect(
+      scaledX * GAME_CONFIG.PIXEL_SIZE,
+      scaledY * GAME_CONFIG.PIXEL_SIZE,
+      GAME_CONFIG.PIXEL_SIZE,
+      GAME_CONFIG.PIXEL_SIZE,
+    );
   };
 
   const mutatePixel = api.room.place.useMutation();
@@ -82,32 +89,28 @@ export default function Canvas({ width, height, room }: CanvasProps) {
     },
     {
       onSuccess: (data) => {
-        console.log("getPixels", data);
         data.forEach((pixel) => {
           handlePixel(pixel.x, pixel.y, pixel.color);
         });
       },
-      onError: (error) => {
-        console.error("getPixels", error);
-      },
     },
   );
-  const placePixel = (x: number, y: number) => {
-    console.log("WE PLACED", x, y, selectedColor);
+  const placePixel = (x: number, y: number, color: string) => {
+    console.log("WE PLACING", x, y, selectedColor);
     mutatePixel.mutate(
       {
         roomId: room.id,
         x,
         y,
-        color: selectedColor,
+        color,
       },
       {
         onSuccess: (data) => {
-          console.log("placePixel", data);
-          handlePixel(x, y, selectedColor);
+          console.log("WE PLACED", data);
+          handlePixel(x, y, color);
         },
         onError: (error) => {
-          console.error("placePixel", error);
+          console.error("NO PLACE", error);
         },
       },
     );
@@ -162,17 +165,15 @@ export default function Canvas({ width, height, room }: CanvasProps) {
     }
 
     if (canvasRef.current) {
-      const cssScaleX = getCanvasScaledValue(
-        canvasRef.current!.width,
-        canvasRef.current!.offsetWidth,
-      );
-      const cssScaleY = getCanvasScaledValue(
-        canvasRef.current!.height,
-        canvasRef.current!.offsetHeight,
-      );
-      const canvasRect = canvasRef.current!.getBoundingClientRect();
-      const x = Math.floor((clientX - canvasRect.left) * cssScaleX);
-      const y = Math.floor((clientY - canvasRect.top) * cssScaleY);
+      let rect = canvasRef.current.getBoundingClientRect();
+      let width = rect.right - rect.left;
+      let height = rect.bottom - rect.top;
+      let userX = clientX - rect.x;
+      let userY = clientY - rect.y;
+
+      const x = userX * (GAME_CONFIG.PIXEL_WIDTH / width);
+      const y = userY * (GAME_CONFIG.PIXEL_HEIGHT / height);
+
       return { x, y, clientX, clientY };
     }
     return { x: 0, y: 0, clientX: 0, clientY: 0 };
@@ -183,7 +184,12 @@ export default function Canvas({ width, height, room }: CanvasProps) {
 
     console.log("x", x, "y", y, shouldPlacePixel);
 
-    if (x >= 0 && x < width && y >= 0 && y < height) {
+    if (
+      x >= 0 &&
+      x < GAME_CONFIG.PIXEL_WIDTH &&
+      y >= 0 &&
+      y < GAME_CONFIG.PIXEL_HEIGHT
+    ) {
       if (shouldPlacePixel) {
         setColorPickerPosition({ x: clientX, y: clientY });
         setShowColorPicker(true);
@@ -225,7 +231,7 @@ export default function Canvas({ width, height, room }: CanvasProps) {
     }
     setSelectedColor(color.hex);
 
-    placePixel(selectedPixel.x, selectedPixel.y);
+    placePixel(selectedPixel.x, selectedPixel.y, color.hex);
     setSelectedPixel(null);
     setShowColorPicker(false);
     setShouldPlacePixel(false);
@@ -261,7 +267,7 @@ export default function Canvas({ width, height, room }: CanvasProps) {
         setShouldPlacePixel(false);
       });
     };
-  }, [width, height, shouldPlacePixel]);
+  }, [shouldPlacePixel]);
 
   useEffect(() => {
     if (
@@ -293,52 +299,49 @@ export default function Canvas({ width, height, room }: CanvasProps) {
     };
   }, [colorPickerRef]);
 
-  useEffect(() => {
-    const update = () => {
-      hoverPixelPositionRef.current = hoverPixelPosition;
-
-      if (hoverPixelRef.current) {
-        hoverPixelRef.current.style.left = `${hoverPixelPosition.x}px`;
-        hoverPixelRef.current.style.top = `${hoverPixelPosition.y}px`;
-      }
-      requestAnimationFrame(update);
-    };
-    const id = requestAnimationFrame(update);
-    return () => {
-      cancelAnimationFrame(id);
-    };
-  }, [hoverPixelPosition]);
-
   if (!room) {
     return null;
   }
 
   return (
     <TransformWrapper
-      initialScale={1}
-      centerOnInit
-      centerZoomedOut
-      wheel={{ step: 0.08 }}
-      doubleClick={{ disabled: true }}
       ref={transformWrapperRef}
+      initialScale={1}
+      centerZoomedOut
+      minScale={0.2}
       limitToBounds
-      disablePadding
+      maxScale={12}
       onZoom={(zoom) => {
         setMultiplier(zoom.state.scale);
       }}
     >
       {({ zoomIn, zoomOut, resetTransform }) => (
         <React.Fragment>
+          <div className="pointer-events-none absolute top-10 z-[11] flex flex-col items-center gap-2 rounded-lg bg-gray-200 px-8 py-2">
+            <div className="flex items-center">
+              <h2 className="text-4xl font-bold text-gray-800">{room.name}</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-2xl font-bold text-gray-800">
+                {GAME_CONFIG.PIXEL_WIDTH}x{GAME_CONFIG.PIXEL_HEIGHT} pixels
+              </h3>
+              <span className="text-2xl">•</span>
+              <h3 className="text-2xl font-bold text-gray-800">
+                3 million users
+              </h3>
+            </div>
+          </div>
+
           <div className="absolute left-5 top-5 z-10 mx-auto flex h-24">
             <div className="my-2 flex flex-col justify-center gap-2">
               <button
-                onClick={() => zoomIn(0.9, 200)}
+                onClick={() => zoomIn()}
                 className="rounded-md bg-gray-200 p-1"
               >
                 +
               </button>
               <button
-                onClick={() => zoomOut(0.9, 200)}
+                onClick={() => zoomOut()}
                 className="rounded-md bg-gray-200 p-1"
               >
                 -
@@ -367,32 +370,33 @@ export default function Canvas({ width, height, room }: CanvasProps) {
               />
             </div>
           )}
-
-          <TransformComponent
-            wrapperStyle={{
-              width,
-              height,
-            }}
-          >
-            <canvas
-              ref={canvasRef}
-              className="pixelated cursor-cross relative min-w-fit max-w-fit origin-top-left bg-white opacity-100"
-            />
+          <TransformComponent wrapperStyle={{ width: "100%", height: "90vh" }}>
             {hoverPixelPosition && (
               <div
                 ref={hoverPixelRef}
+                className="absolute left-0 top-0 z-10"
                 style={{
-                  position: "absolute",
-                  width: `${PIXEL_SIZE * multiplier * 10}px`,
-                  height: `${PIXEL_SIZE * multiplier * 10}px`,
-                  backgroundColor: "#fff",
-                  border: "1px solid #000",
+                  width: `${GAME_CONFIG.PIXEL_SIZE}px`,
+                  height: `${GAME_CONFIG.PIXEL_SIZE}px`,
                   pointerEvents: "none",
-                  left: `${hoverPixelPositionRef.current.x}px`,
-                  top: `${hoverPixelPositionRef.current.y}px`,
+                  transform: `translate(${hoverPixelPosition.x * 100}%, ${
+                    hoverPixelPosition.y * 100
+                  }%)`,
+                  backgroundColor: selectedColor,
+                  outline: "solid 6px rgba(0,0,0,0.5)",
                 }}
               />
             )}
+            <canvas
+              ref={canvasRef}
+              className="pixelated cursor-cross relative bg-white ring-2 ring-gray-200"
+              style={{
+                width: GAME_CONFIG.CANVAS_SIZE,
+                height: GAME_CONFIG.CANVAS_SIZE,
+              }}
+              width={GAME_CONFIG.PIXEL_WIDTH * GAME_CONFIG.PIXEL_SIZE}
+              height={GAME_CONFIG.PIXEL_HEIGHT * GAME_CONFIG.PIXEL_SIZE}
+            />
           </TransformComponent>
         </React.Fragment>
       )}
