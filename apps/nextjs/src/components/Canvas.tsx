@@ -327,7 +327,7 @@ export default function Canvas({ room }: CanvasProps) {
               </h3>
               <span className="text-2xl">•</span>
               <h3 className="text-2xl font-bold text-gray-800">
-                3 million users
+                3 million online
               </h3>
             </div>
           </div>

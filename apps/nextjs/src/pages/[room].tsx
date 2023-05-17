@@ -58,7 +58,7 @@ const Room = () => {
             was hacked together by{" "}
             <a
               href="https://twitter.com/datagutt"
-              className="underline-offset-3 underline decoration-sky-500 decoration-wavy decoration-2  hover:text-gray-400 focus:text-gray-400"
+              className="underline-offset-3 underline decoration-green-500 decoration-wavy decoration-2  hover:text-gray-400 focus:text-gray-400"
               rel="noopener noreferrer"
             >
               datagutt
