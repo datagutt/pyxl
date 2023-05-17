@@ -62,7 +62,8 @@ export const roomRouter = createTRPCRouter({
       });
     }),
   delete: publicProcedure.input(z.string()).mutation(({ ctx, input }) => {
-    return ctx.prisma.room.delete({ where: { id: input } });
+    const pixelService = PixelService.getInstance();
+    return pixelService.deleteRoom(input);
   }),
   getPixels: publicProcedure
     .input(z.object({ id: z.string() }))

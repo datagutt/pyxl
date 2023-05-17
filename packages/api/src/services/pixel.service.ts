@@ -51,6 +51,15 @@ export class PixelService {
     return room;
   }
 
+  public async deleteRoom(roomId: string): Promise<void> {
+    const room = await this.getRoom(roomId);
+    const db = this.db.openDB({ name: room.id.toString() });
+    db.transaction(() => {
+      db.clear();
+    });
+    await prisma.room.delete({ where: { id: roomId } });
+  }
+
   public async getPixel(x: number, y: number, roomId: string): Promise<Pixel> {
     const room = await this.getRoom(roomId);
     const db = this.db.openDB({ name: room.id.toString() });
