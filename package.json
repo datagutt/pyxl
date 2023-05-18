@@ -12,8 +12,8 @@
     "lint": "turbo lint && manypkg check",
     "lint:fix": "turbo lint:fix && manypkg fix",
     "type-check": "turbo type-check",
-    "ws:start": "yarn workspace @pyxl/websocket start",
-    "start": "yarn workspace @pyxl/websocket start"
+    "ws:start": "turbo run start --filter=@pyxl/websocket",
+    "start": "turbo run start --filter=@pyxl/websocket"
   },
   "dependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^3.7.2",
@@ -23,7 +23,7 @@
     "eslint": "^8.40.0",
     "prettier": "^2.8.8",
     "prettier-plugin-tailwindcss": "^0.2.8",
-    "turbo": "^1.9.6",
+    "turbo": "^1.9.8",
     "typescript": "^5.0.4"
   },
   "packageManager": "pnpm@8.2.0"
