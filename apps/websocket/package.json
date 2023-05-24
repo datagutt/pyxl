@@ -2,6 +2,7 @@
   "name": "@pyxl/websocket",
   "version": "0.1.0",
   "private": true,
+  "main": "dist/prodServer.js",
   "scripts": {
     "build": "pnpm with-env tsc",
     "clean": "git clean -xdf .turbo node_modules",
