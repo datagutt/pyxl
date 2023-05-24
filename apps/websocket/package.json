@@ -2,6 +2,7 @@
   "name": "@pyxl/websocket",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "main": "dist/prodServer.js",
   "scripts": {
     "build": "pnpm with-env tsc --outDir dist --project tsconfig.server.json",
