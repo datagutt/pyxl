@@ -14,7 +14,7 @@ import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import { type NodeHTTPCreateContextFnOptions } from "@trpc/server/dist/adapters/node-http";
 import { getSession } from "next-auth/react";
 import superjson from "superjson";
-import type ws from "ws";
+import { WebSocket } from "ws";
 import { ZodError } from "zod";
 
 import { getServerSession, type Session } from "@pyxl/auth";
@@ -57,7 +57,7 @@ const createInnerTRPCContext = (opts: CreateContextOptions) => {
 export const createTRPCContext = async (
   opts:
     | CreateNextContextOptions
-    | NodeHTTPCreateContextFnOptions<IncomingMessage, ws>,
+    | NodeHTTPCreateContextFnOptions<IncomingMessage, WebSocket>,
 ) => {
   /*
    * We can not always use "getServerAuthSession"  as it's not available in websocket server
