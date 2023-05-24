@@ -65,7 +65,7 @@ export const createTRPCContext = async (
    */
   let session: Session | null = null;
 
-  const serverOpts = opts as GetServerSidePropsContext;
+  const serverOpts = opts as unknown as GetServerSidePropsContext;
   if (typeof serverOpts.res.getHeader === "function") {
     session = await getServerSession({
       req: serverOpts.req,
