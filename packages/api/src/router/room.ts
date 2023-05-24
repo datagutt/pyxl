@@ -126,7 +126,7 @@ export const roomRouter = createTRPCRouter({
         input.x,
         input.y,
         input.color,
-        ctx?.user?.id,
+        ctx?.session?.user?.id,
         input.roomId,
       );
     }),
