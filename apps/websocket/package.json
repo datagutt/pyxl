@@ -4,7 +4,7 @@
   "private": true,
   "main": "dist/prodServer.js",
   "scripts": {
-    "build": "pnpm with-env tsc",
+    "build": "pnpm with-env tsc --outDir dist --project tsconfig.server.json",
     "clean": "git clean -xdf .turbo node_modules",
     "dev": "dotenv -v PORT=3001 tsx watch src/wssDevServer.ts --tsconfig tsconfig.server.json ",
     "lint": "dotenv -v SKIP_ENV_VALIDATION=1 next lint",
