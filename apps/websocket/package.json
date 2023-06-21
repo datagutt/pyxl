@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "main": "dist/prodServer.js",
+  "type": "module",
   "scripts": {
     "build": "pnpm with-env tsc --outDir dist --project tsconfig.server.json",
     "clean": "git clean -xdf .turbo node_modules",

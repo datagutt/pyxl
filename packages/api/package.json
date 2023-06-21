@@ -5,7 +5,7 @@
   "types": "./dist/index.d.ts",
   "type": "module",
   "scripts": {
-    "build": "pnpm tsc --outDir dist --project tsconfig.json",
+    "build": "pnpm tsc --outDir dist --project tsconfig.server.json",
     "clean": "rm -rf .turbo node_modules",
     "lint": "eslint .",
     "lint:fix": "pnpm lint --fix",
