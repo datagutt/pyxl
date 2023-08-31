@@ -1,11 +1,22 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "~/*": ["./src/*"]
-    }
+    "target": "esnext",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "lib": ["es2016", "esnext", "dom"],
+    "outDir": "dist",
+    "strict": true,
+    "strictNullChecks": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true
   },
-  "exclude": [],
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.cjs", "**/*.mjs"]
+  "ts-node": {
+    "esm": true,
+    "require": ["tsconfig-paths/register"]
+  },
+  "exclude": ["node_modules", "dist"]
 }
