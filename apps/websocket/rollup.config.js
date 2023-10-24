@@ -1,8 +1,8 @@
 import { readFile } from "fs/promises";
+import path from "path";
 import json from "@rollup/plugin-json";
 import noEmit from "rollup-plugin-no-emit";
 import nodeExternals from "rollup-plugin-node-externals";
-import preserveDirectives from "rollup-plugin-preserve-directives";
 import styles from "rollup-plugin-styles";
 import swc from "rollup-plugin-swc3";
 import typescript from "rollup-plugin-typescript2";
@@ -67,7 +67,6 @@ export default {
     }),
     styles(),
     json(),
-    preserveDirectives.default(),
     ...(!main && !exports ? [noEmit()] : []),
   ],
   onwarn(message) {
@@ -89,6 +88,11 @@ export default {
  */
 async function readPackageJson() {
   return JSON.parse(
-    await readFile(new URL(`${process.cwd()}/package.json`, import.meta.url)),
+    await readFile(
+      new URL(
+        `file://${process.cwd()}${path.sep}package.json`,
+        import.meta.url,
+      ),
+    ),
   );
 }
