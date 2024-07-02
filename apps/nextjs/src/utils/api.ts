@@ -1,7 +1,8 @@
+import {type NextPageContext} from "next";
 import {
   createWSClient,
+  httpBatchLink,
   loggerLink,
-  splitLink,
   unstable_httpBatchStreamLink,
   wsLink,
 } from "@trpc/client";
@@ -17,12 +18,33 @@ const getBaseUrl = () => {
   return `http://localhost:3000`; // dev SSR should use localhost
 };
 
-const wsClient = createWSClient({
-  url:
-    process.env.NODE_ENV === "production"
-      ? "wss://ws.pyxl.place"
-      : "ws://localhost:3001",
-});
+function getEndingLink(ctx: NextPageContext | undefined) {
+  if (typeof window === "undefined") {
+    return unstable_httpBatchStreamLink({
+      url: `${getBaseUrl()}/api/trpc`,
+      headers() {
+        if (!ctx?.req?.headers) {
+          return {};
+        }
+        // on ssr, forward client's headers to the server
+        return {
+          ...ctx.req.headers,
+          'x-ssr': '1',
+        };
+      },
+    });
+  }
+  const client = createWSClient({
+    url:
+      process.env.NODE_ENV === "production"
+        ? "wss://ws.pyxl.place"
+        : "ws://localhost:3001",
+  });
+  return wsLink<AppRouter>({
+    client,
+  });
+}
+
 export const api = createTRPCNext<AppRouter>({
   config({ctx}) {
     return {
@@ -39,27 +61,7 @@ export const api = createTRPCNext<AppRouter>({
               typeof window !== "undefined") ||
             (opts.direction === "down" && opts.result instanceof Error),
         }),
-        splitLink({
-          condition(op) {
-            return op.type === "subscription";
-          },
-          true: wsLink({
-            client: wsClient,
-          }),
-          false: unstable_httpBatchStreamLink({
-            url: `${getBaseUrl()}/api/trpc`,
-            headers() {
-              if (!ctx?.req?.headers) {
-                return {};
-              }
-              // on ssr, forward client's headers to the server
-              return {
-                ...ctx.req.headers,
-                'x-ssr': '1',
-              };
-            },
-          }),
-        }),
+        getEndingLink(ctx),
       ],
     };
   },
