@@ -21,16 +21,17 @@
     "@pyxl/db": "workspace:*",
     "@rollup/plugin-json": "^6.0.1",
     "@swc/core": "^1.3.0",
-    "@trpc/client": "^10.41.0",
-    "@trpc/next": "^10.41.0",
-    "@trpc/react-query": "^10.41.0",
-    "@trpc/server": "^10.41.0",
+    "@tanstack/react-query-devtools": "^5.49.2",
+    "@trpc/client": "11.0.0-rc.433",
+    "@trpc/next": "11.0.0-rc.433",
+    "@trpc/react-query": "11.0.0-rc.433",
+    "@trpc/server": "11.0.0-rc.433",
+    "cross-env": "7.0.3",
     "eventemitter3": "^5.0.0",
     "superjson": "1.9.1",
     "tsx": "^4",
     "ws": "^8.17.1",
-    "zod": "^3.21.4",
-    "cross-env": "7.0.3"
+    "zod": "^3.21.4"
   },
   "devDependencies": {
     "@pyxl/eslint-config": "workspace:*",

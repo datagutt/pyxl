@@ -1,9 +1,9 @@
 import {applyWSSHandler} from "@trpc/server/adapters/ws";
-import ws from "ws";
+import {WebSocketServer} from "ws";
 
 import {appRouter, createTRPCContext} from "@pyxl/api";
 
-const wss = new ws.Server({
+const wss = new WebSocketServer({
   port: 3001,
 });
 const handler = applyWSSHandler({
