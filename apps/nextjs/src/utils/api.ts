@@ -1,7 +1,6 @@
 import {type NextPageContext} from "next";
 import {
   createWSClient,
-  httpBatchLink,
   loggerLink,
   unstable_httpBatchStreamLink,
   wsLink,
@@ -34,16 +33,15 @@ function getEndingLink(ctx: NextPageContext | undefined) {
       },
     });
   }
-  const client = customWsClient({
-    getUrl: () => {
-      // get next auth session cookie
-      const cookie = ctx?.req?.headers.cookie
-        ?.split(";")
-        .find((c) => c.trim().startsWith("__Secure-next-auth.session-token") || c.trim().startsWith("next-auth.session-token"));
-      const sessionToken = cookie?.split("=")[1];
-      return `${process.env.NODE_ENV === "production" ? "wss://ws.pyxl.place" : "ws://localhost:3001"}?sessionToken=${sessionToken}`;
-    }
-  });
+  const client = customWsClient(() => {
+    // get next auth session cookie
+    const cookie = ctx?.req?.headers.cookie
+      ?.split(";")
+      .find((c) => c.trim().startsWith("__Secure-next-auth.session-token") || c.trim().startsWith("next-auth.session-token"));
+    const sessionToken = cookie?.split("=")[1];
+    return `${process.env.NODE_ENV === "production" ? "wss://ws.pyxl.place" : "ws://localhost:3001"}?sessionToken=${sessionToken}`;
+  }
+  );
   return wsLink<AppRouter>({
     client,
   });
