@@ -26,10 +26,14 @@ declare module "next-auth" {
   // }
 }
 
-const url = (process.env.NEXTAUTH_URL ? process.env.NEXTAUTH_URL : process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
-const useSecureCookies = url.includes('https://')
-const cookiePrefix = useSecureCookies ? '__Secure-' : ''
-const hostName = new URL(url).hostname
+const url = process.env.NEXTAUTH_URL
+  ? process.env.NEXTAUTH_URL
+  : process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "http://localhost:3000";
+const useSecureCookies = url.includes("https://");
+const cookiePrefix = useSecureCookies ? "__Secure-" : "";
+const hostName = new URL(url).hostname;
 /**
  * Options for NextAuth.js used to configure
  * adapters, providers, callbacks, etc.
@@ -37,17 +41,70 @@ const hostName = new URL(url).hostname
  **/
 export const authOptions: NextAuthOptions = {
   cookies: {
-    sessionToken:
-    {
+    sessionToken: {
       name: `${cookiePrefix}next-auth.session-token`,
       options: {
         httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
+        sameSite: "lax",
+        path: "/",
         secure: useSecureCookies,
-        domain: hostName == 'localhost' ? hostName : '.' + hostName // add a . in front so that subdomains are included
-      }
+        domain: hostName == "localhost" ? hostName : "." + hostName, // add a . in front so that subdomains are included
+      },
     },
+    callbackUrl: {
+      name: `${cookiePrefix}next-auth.callback-url`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: useSecureCookies,
+        domain: hostName == "localhost" ? hostName : "." + hostName, // add a . in front so that subdomains are included
+      },
+    },
+    csrfToken: {
+      name: `${cookiePrefix}next-auth.csrf-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: useSecureCookies,
+        domain: hostName == "localhost" ? hostName : "." + hostName, // add a . in front so that subdomains are included
+      },
+    },
+    pkceCodeVerifier: {
+      name: `${cookiePrefix}next-auth.pkce.code_verifier`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: useSecureCookies,
+        maxAge: 900,
+        domain: hostName == "localhost" ? hostName : "." + hostName, // add a . in front so that subdomains are included
+      },
+    },
+
+    state: {
+      name: `${cookiePrefix}next-auth.state`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: useSecureCookies,
+        maxAge: 900,
+        domain: hostName == "localhost" ? hostName : "." + hostName, // add a . in front so that subdomains are included
+      },
+    },
+    nonce: {
+      name: `${cookiePrefix}next-auth.nonce`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: useSecureCookies,
+        domain: hostName == "localhost" ? hostName : "." + hostName, // add a . in front so that subdomains are included
+
+      },
+    }
   },
   callbacks: {
     jwt: ({token, user, account}) => {
@@ -55,7 +112,11 @@ export const authOptions: NextAuthOptions = {
     },
     session({session, user, token}) {
       if (session.user) {
-        session.user = {...session.user, id: user?.id, access_token: token?.access_token as string};
+        session.user = {
+          ...session.user,
+          id: user?.id,
+          access_token: token?.access_token as string,
+        };
         // session.user.role = user.role; <-- put other properties on the session here
       }
       return session;
