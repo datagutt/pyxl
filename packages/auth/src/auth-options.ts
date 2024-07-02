@@ -27,7 +27,7 @@ declare module "next-auth" {
 }
 
 const url = (process.env.NEXTAUTH_URL ? process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000' : 'http://localhost:3000')
-const useSecureCookies = new URL(url).includes('https://')
+const useSecureCookies = url.includes('https://')
 const cookiePrefix = useSecureCookies ? '__Secure-' : ''
 const hostName = new URL(url).hostname
 /**
