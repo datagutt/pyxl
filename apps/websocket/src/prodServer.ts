@@ -16,7 +16,7 @@ const server = createHTTPServer({
 });
 
 // WS server
-const wss = new WebSocketServer({port: port + 1});
+const wss = new WebSocketServer({port: port});
 const handler = applyWSSHandler({
   wss,
   router: appRouter,
@@ -33,4 +33,4 @@ process.on("SIGTERM", () => {
   wss.close();
 });
 
-server.listen(port);
+server.listen(port - 1);
