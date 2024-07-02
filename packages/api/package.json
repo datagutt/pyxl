@@ -1,19 +1,10 @@
 {
   "name": "@pyxl/api",
   "version": "0.1.0",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
   "type": "module",
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
-    },
-    "./package.json": "./package.json"
-  },
   "scripts": {
-    "build": "tsup",
     "dev": "tsx watch src/index.ts",
     "clean": "rm -rf .turbo node_modules",
     "lint": "eslint .",
@@ -21,8 +12,8 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@pyxl/auth": "^0.1.0",
-    "@pyxl/db": "^0.1.0",
+    "@pyxl/auth": "workspace:*",
+    "@pyxl/db": "workspace:*",
     "@trpc/client": "^10.41.0",
     "@trpc/server": "^10.41.0",
     "lmdb": "^2.8.5",
@@ -30,7 +21,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@pyxl/eslint-config": "^0.1.0",
+    "@pyxl/eslint-config": "workspace:*",
     "eslint": "^8.52.0",
     "tsup": "^7.2.0",
     "typescript": "^5.2.2"

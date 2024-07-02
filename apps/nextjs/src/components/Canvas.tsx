@@ -6,14 +6,10 @@ import {
   type ReactZoomPanPinchRef,
 } from "react-zoom-pan-pinch";
 
-import { RoomWithColors } from "@pyxl/api/src/services/pixel.service";
-
-import { api } from "~/utils/api";
+import { api, RouterOutputs } from "~/utils/api";
 
 type CanvasProps = {
-  width: number;
-  height: number;
-  room: RoomWithColors;
+  room: NonNullable<RouterOutputs["room"]["byName"]>;
 };
 
 type PixelPosition = {
@@ -34,7 +30,7 @@ export default function Canvas({ room }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const transformWrapperRef = useRef<ReactZoomPanPinchRef>(null);
   const context = useRef<CanvasRenderingContext2D | null>(null);
-  const colorPickerRef = useRef<GithubPicker>(null);
+  const colorPickerRef = useRef<HTMLDivElement>(null);
   const hoverPixelRef = useRef<HTMLDivElement>(null);
   const [multiplier, setMultiplier] = useState(1);
   const [shouldPlacePixel, setShouldPlacePixel] = useState(false);
@@ -366,7 +362,6 @@ export default function Canvas({ room }: CanvasProps) {
                 ref={colorPickerRef}
                 colors={room.colors.map((color) => color.value)}
                 onChange={handleColorChange}
-                onClose={() => setShowColorPicker(false)}
               />
             </div>
           )}
