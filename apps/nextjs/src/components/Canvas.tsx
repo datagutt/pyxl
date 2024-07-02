@@ -332,6 +332,7 @@ export default function Canvas({ room }: CanvasProps) {
                 {Math.floor(hoverPixelPosition.x)},{" "}
                 {Math.floor(hoverPixelPosition.y)}
               </h3>
+              </div>
           </div>
 
           <div className="absolute left-5 top-5 z-10 mx-auto flex h-24">
