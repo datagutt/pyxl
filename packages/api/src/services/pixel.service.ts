@@ -1,6 +1,6 @@
-import { open, type Database, type RootDatabase } from "lmdb";
+import {open, type Database, type RootDatabase} from "lmdb";
 
-import { prisma, type Color, type Room } from "@pyxl/db";
+import {prisma, type Color, type Room} from "@pyxl/db";
 
 import eventEmitter from "../eventEmitter";
 
@@ -42,8 +42,8 @@ export class PixelService {
 
   public async getRoom(roomId: string): Promise<RoomWithColors> {
     const room = await prisma.room.findUnique({
-      where: { id: roomId },
-      include: { colors: true },
+      where: {id: roomId},
+      include: {colors: true},
     });
     if (!room) {
       throw new Error("Room not found");
@@ -51,34 +51,40 @@ export class PixelService {
     return room;
   }
 
-  public async deleteRoom(roomId: string): Promise<void> {
+  public async deleteRoom(roomId: string, userId: string): Promise<void> {
     const room = await this.getRoom(roomId);
-    const db = this.db.openDB({ name: room.id.toString() });
+    if (!room) {
+      throw new Error("Room not found");
+    }
+    if (room.ownerId !== userId) {
+      throw new Error("User not authorized");
+    }
+    const db = this.db.openDB({name: room.id.toString()});
     db.transaction(() => {
       db.clear();
     });
-    await prisma.room.delete({ where: { id: roomId } });
+    await prisma.room.delete({where: {id: roomId}});
   }
 
   public async getPixel(x: number, y: number, roomId: string): Promise<Pixel> {
     const room = await this.getRoom(roomId);
-    const db = this.db.openDB({ name: room.id.toString() });
+    const db = this.db.openDB({name: room.id.toString()});
     return db.transaction(() => {
       const value = this.db.getBinary(`${x}:${y}`);
       if (value) {
         const [color, userId] = value?.toString().split(":");
-        return { x, y, color, userId, room } as Pixel;
+        return {x, y, color, userId, room} as Pixel;
       }
-      return { x, y, color: "white", userId: "", room };
+      return {x, y, color: "white", userId: "", room};
     });
   }
 
   public async getPixels(roomId: string): Promise<Pixel[]> {
     const room = await this.getRoom(roomId);
-    const db = this.db.openDB({ name: room.id.toString() });
+    const db = this.db.openDB({name: room.id.toString()});
     return db.transaction(() => {
       const pixels = [];
-      for (const { key, value } of db.getRange()) {
+      for (const {key, value} of db.getRange()) {
         const [x, y] = key.toString().split(":");
         const [color, userId] = value?.toString().split(":");
         pixels.push({
@@ -113,11 +119,11 @@ export class PixelService {
       throw new Error("Invalid color");
     }
 
-    const db = this.db.openDB({ name: room.id.toString() });
+    const db = this.db.openDB({name: room.id.toString()});
     await db.transaction(() => {
       db.put(`${x}:${y}`, `${color}:${userId}`);
-      eventEmitter.emit("room.pixel", { x, y, color, userId, room });
+      eventEmitter.emit("room.pixel", {x, y, color, userId, room});
     });
-    return { x, y, color, userId, room };
+    return {x, y, color, userId, room};
   }
 }

@@ -42,7 +42,7 @@ export const roomRouter = createTRPCRouter({
         include: {colors: {select: {value: true}}},
       });
     }),
-  create: publicProcedure
+  create: protectedProcedure
     .input(
       z.object({
         name: z.string().min(1),
@@ -52,15 +52,19 @@ export const roomRouter = createTRPCRouter({
       return await ctx.prisma.room.create({
         data: {
           ...input,
+          ownerId: ctx.session?.user?.id,
           colors: {
             create: defaultColors.map((value) => ({value})),
           },
         },
       });
     }),
-  delete: publicProcedure.input(z.string()).mutation(({ctx, input}) => {
+  delete: protectedProcedure.input(z.string()).mutation(({ctx, input}) => {
     const pixelService = PixelService.getInstance();
-    return pixelService.deleteRoom(input);
+    if (!ctx.session?.user) {
+      throw new Error("User not authenticated");
+    }
+    return pixelService.deleteRoom(input, ctx.session.user.id);
   }),
   getPixels: publicProcedure
     .input(z.object({id: z.string()}))
