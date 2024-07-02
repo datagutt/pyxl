@@ -13,15 +13,15 @@ import type {AppRouter} from "@pyxl/api";
 const getBaseUrl = () => {
   if (process.env.NODE_ENV === "production") return `https://api.pyxl.place`; // prod should use pyxl.place (or your domain)
   //if (typeof window !== "undefined") return ""; // browser should use relative url
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`; // SSR should use vercel url
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}/api/trpc`; // SSR should use vercel url
 
-  return `http://localhost:3000`; // dev SSR should use localhost
+  return `http://localhost:300/api/trpc0`; // dev SSR should use localhost
 };
 
 function getEndingLink(ctx: NextPageContext | undefined) {
   if (typeof window === "undefined") {
     return unstable_httpBatchStreamLink({
-      url: `${getBaseUrl()}/api/trpc`,
+      url: `${getBaseUrl()}`,
       headers() {
         if (!ctx?.req?.headers) {
           return {};
