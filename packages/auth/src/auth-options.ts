@@ -1,8 +1,9 @@
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { type DefaultSession, type NextAuthOptions } from "next-auth";
+import {PrismaAdapter} from "@next-auth/prisma-adapter";
+import {type DefaultSession, type NextAuthOptions} from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
 
-import { prisma } from "@pyxl/db";
+import {prisma} from "@pyxl/db";
+import {getToken} from "next-auth/jwt";
 
 /**
  * Module augmentation for `next-auth` types
@@ -14,6 +15,7 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
+      access_token: string;
       // ...other properties
       // role: UserRole;
     } & DefaultSession["user"];
@@ -32,13 +34,20 @@ declare module "next-auth" {
  **/
 export const authOptions: NextAuthOptions = {
   callbacks: {
-    session({ session, user }) {
+    jwt: ({token, user, account}) => {
+      return {...token, ...user, access_token: account?.accessToken};
+    },
+    session({session, user, token}) {
       if (session.user) {
         session.user.id = user.id;
+        session.user = {...session.user, ...token};
         // session.user.role = user.role; <-- put other properties on the session here
       }
       return session;
     },
+  },
+  session: {
+    strategy: "jwt",
   },
   adapter: PrismaAdapter(prisma),
   providers: [
