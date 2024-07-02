@@ -57,7 +57,7 @@ const Room = () => {
             </a>{" "}
             was hacked together by{" "}
             <a
-              href="https://twitter.com/datagutt"
+              href="https://x.com/datagutt"
               className="underline-offset-3 underline decoration-green-500 decoration-wavy decoration-2  hover:text-gray-400 focus:text-gray-400"
               rel="noopener noreferrer"
             >
