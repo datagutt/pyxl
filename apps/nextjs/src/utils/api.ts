@@ -15,7 +15,7 @@ const getBaseUrl = () => {
   //if (typeof window !== "undefined") return ""; // browser should use relative url
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}/api/trpc`; // SSR should use vercel url
 
-  return `http://localhost:300/api/trpc0`; // dev SSR should use localhost
+  return `http://localhost:3000/api/trpc`; // dev SSR should use localhost
 };
 
 function getEndingLink(ctx: NextPageContext | undefined) {
@@ -35,6 +35,7 @@ function getEndingLink(ctx: NextPageContext | undefined) {
     });
   }
   const client = customWsClient(() => {
+    console.log("ctx", ctx);
     // get next auth session cookie
     const cookie = ctx?.req?.headers.cookie
       ?.split(";")
