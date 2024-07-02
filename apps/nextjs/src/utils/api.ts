@@ -1,7 +1,5 @@
-import {type NextPageContext} from "next";
 import {
   createWSClient,
-  httpBatchLink,
   loggerLink,
   splitLink,
   unstable_httpBatchStreamLink,
