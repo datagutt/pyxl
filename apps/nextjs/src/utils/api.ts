@@ -1,14 +1,14 @@
-import { type NextPageContext } from "next";
+import {type NextPageContext} from "next";
 import {
   createWSClient,
   httpBatchLink,
   loggerLink,
   wsLink,
 } from "@trpc/client";
-import { createTRPCNext } from "@trpc/next";
+import {createTRPCNext} from "@trpc/next";
 import superjson from "superjson";
 
-import type { AppRouter } from "@pyxl/api";
+import type {AppRouter} from "@pyxl/api";
 
 const getBaseUrl = () => {
   if (typeof window !== "undefined") return ""; // browser should use relative url
@@ -25,15 +25,10 @@ function getEndingLink(ctx: NextPageContext | undefined) {
         if (!ctx?.req?.headers) {
           return {};
         }
-        const {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          connection: _connection,
-          ...headers
-        } = ctx.req.headers;
         // on ssr, forward client's headers to the server
         return {
-          ...headers,
-          "x-ssr": "1",
+          ...ctx.req.headers,
+          'x-ssr': '1',
         };
       },
     });
@@ -50,13 +45,13 @@ function getEndingLink(ctx: NextPageContext | undefined) {
 }
 
 export const api = createTRPCNext<AppRouter>({
-  config({ ctx }) {
+  config({ctx}) {
     return {
       transformer: superjson,
       /**
        * @link https://tanstack.com/query/v4/docs/react/reference/QueryClient
        */
-      queryClientConfig: { defaultOptions: { queries: { staleTime: 60 } } },
+      queryClientConfig: {defaultOptions: {queries: {staleTime: 60}}},
       links: [
         // adds pretty logs to your console in development and logs errors in production
         loggerLink({
@@ -72,4 +67,4 @@ export const api = createTRPCNext<AppRouter>({
   ssr: false,
 });
 
-export { type RouterInputs, type RouterOutputs } from "@pyxl/api";
+export {type RouterInputs, type RouterOutputs} from "@pyxl/api";
