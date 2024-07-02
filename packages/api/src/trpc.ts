@@ -65,6 +65,16 @@ export const createTRPCContext = async (
    */
   let session: Session | null = null;
 
+  const sessionToken = opts.req.url?.split("sessionToken=")[1];
+
+  opts.req = {
+    ...opts.req,
+    headers: {
+      ...opts.req.headers,
+      cookie: `__Secure-next-auth.session-token=${sessionToken}`,
+    },
+  } as IncomingMessage;
+
   const serverOpts = opts as unknown as GetServerSidePropsContext;
   if (typeof serverOpts.res.getHeader === "function") {
     session = await getServerSession({

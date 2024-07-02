@@ -34,16 +34,46 @@ function getEndingLink(ctx: NextPageContext | undefined) {
       },
     });
   }
-  const client = createWSClient({
-    url:
-      process.env.NODE_ENV === "production"
-        ? "wss://ws.pyxl.place"
-        : "ws://localhost:3001",
+  const client = customWsClient({
+    getUrl: () => {
+      // get next auth session cookie
+      const cookie = ctx?.req?.headers.cookie
+        ?.split(";")
+        .find((c) => c.trim().startsWith("__Secure-next-auth.session-token") || c.trim().startsWith("next-auth.session-token"));
+      const sessionToken = cookie?.split("=")[1];
+      return `${process.env.NODE_ENV === "production" ? "wss://ws.pyxl.place" : "ws://localhost:3001"}?sessionToken=${sessionToken}`;
+    }
   });
   return wsLink<AppRouter>({
     client,
   });
 }
+const customWsClient = (getUrl: () => string): ReturnType<typeof createWSClient> => {
+  let client: ReturnType<typeof createWSClient> | undefined;
+  let prevUrl: string;
+  return {
+    close() {
+      client?.close();
+      client = undefined;
+    },
+    getConnection: () => {
+      if (!client) {
+        throw new Error('No connection');
+      } else {
+        return client.getConnection();
+      }
+    },
+    request(query, subscriber) {
+      const url = getUrl();
+      if (!client || prevUrl !== url) {
+        client?.close();
+        prevUrl = url;
+        client = createWSClient({url});
+      }
+      return client.request(query, subscriber);
+    },
+  };
+};
 
 export const api = createTRPCNext<AppRouter>({
   config({ctx}) {
