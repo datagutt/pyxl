@@ -28,15 +28,18 @@ const handler = applyWSSHandler({
 });
 
 var whitelist = ['https://pyxl.place', 'https://www.pyxl.place', 'https://api.pyxl.place', 'https://ws.pyxl.place', 'http://localhost:3000', 'http://localhost:3001'];
-var corsOptions = {
-  methods: ["GET", "POST", "OPTIONS"],
+var corsOptions: cors.CorsOptions = {
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true,
   origin: function (origin, callback) {
+    if (!origin) return callback(null, true)
     if (whitelist.indexOf(origin) !== -1) {
       callback(null, true)
     } else {
       callback(new Error(`Not allowed by CORS: ${origin}`))
     }
-  }
+  },
+  allowedHeaders: ["Content-Type", "Accept", "Authorization", "trpc-accept", "Accept-Encoding"],
 }
 // HTTP server
 const server = createHTTPServer({
