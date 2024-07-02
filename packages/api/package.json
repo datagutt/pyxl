@@ -18,12 +18,12 @@
     "@trpc/server": "^10.41.0",
     "lmdb": "^2.8.5",
     "superjson": "1.9.1",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "tsx": "^4"
   },
   "devDependencies": {
     "@pyxl/eslint-config": "workspace:*",
     "eslint": "^8.52.0",
-    "tsup": "^7.2.0",
     "typescript": "^5.2.2"
   }
 }

@@ -16,7 +16,8 @@
     "strictNullChecks": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "declaration": true
+    "declaration": true,
+    "allowImportingTsExtensions": true,
   },
   "ts-node": {
     "esm": true,

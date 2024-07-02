@@ -91,17 +91,14 @@ const nativeNodeModulesPlugin = {
 
 const options = {
    entryPoints: ['src/prodServer.ts'],
-   outfile: 'dist/prodServer.mjs',
+   outfile: 'dist/prodServer.cjs',
    bundle: true,
    minify: false,
    sourcemap: true,
    external: ["lmdb"],
    platform: 'node',
-   format: 'esm',
+   format: 'cjs',
    target: 'esnext',
-   banner: {
-     js: `import {dirname as toplevelDirname} from 'path'; import {fileURLToPath as topLevelFileURLToPath} from 'url'; import {createRequire as topLevelCreateRequire} from 'module'; const require = topLevelCreateRequire(import.meta.url), __filename = topLevelFileURLToPath(import.meta.url), __dirname = toplevelDirname(__filename);`,
-   },
    define: {},
    plugins: [nativeNodeModulesPlugin],
 };

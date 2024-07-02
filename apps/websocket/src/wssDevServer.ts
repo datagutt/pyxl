@@ -1,7 +1,7 @@
-import { applyWSSHandler } from "@trpc/server/adapters/ws";
+import {applyWSSHandler} from "@trpc/server/adapters/ws";
 import ws from "ws";
 
-import { appRouter, createTRPCContext } from "@pyxl/api";
+import {appRouter, createTRPCContext} from "@pyxl/api";
 
 const wss = new ws.Server({
   port: 3001,
