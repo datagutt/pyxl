@@ -6,7 +6,7 @@ import {
   type ReactZoomPanPinchRef,
 } from "react-zoom-pan-pinch";
 
-import { api, RouterOutputs } from "~/utils/api";
+import { api, type RouterOutputs } from "~/utils/api";
 
 type CanvasProps = {
   room: NonNullable<RouterOutputs["room"]["byName"]>;
@@ -161,11 +161,11 @@ export default function Canvas({ room }: CanvasProps) {
     }
 
     if (canvasRef.current) {
-      let rect = canvasRef.current.getBoundingClientRect();
-      let width = rect.right - rect.left;
-      let height = rect.bottom - rect.top;
-      let userX = clientX - rect.x;
-      let userY = clientY - rect.y;
+      const rect = canvasRef.current.getBoundingClientRect();
+      const width = rect.right - rect.left;
+      const height = rect.bottom - rect.top;
+      const userX = clientX - rect.x;
+      const userY = clientY - rect.y;
 
       const x = userX * (GAME_CONFIG.PIXEL_WIDTH / width);
       const y = userY * (GAME_CONFIG.PIXEL_HEIGHT / height);
@@ -221,7 +221,7 @@ export default function Canvas({ room }: CanvasProps) {
     setHoverPixelPosition({ x, y });
   };
 
-  const handleColorChange = (color: any) => {
+  const handleColorChange = (color: {hex: string}) => {
     if (!selectedPixel) {
       return;
     }

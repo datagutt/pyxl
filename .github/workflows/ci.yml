@@ -26,10 +26,10 @@ jobs:
         env:
           PNPM_VERSION: 9.0.6
 
-      - name: Setup Node 18
+      - name: Setup Node 20
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Get pnpm store directory
         id: pnpm-cache
