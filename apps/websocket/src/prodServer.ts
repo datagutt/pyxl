@@ -36,7 +36,7 @@ process.on("SIGTERM", () => {
   wss.close();
 });
 
-server?.server.on('upgrade', (request, socket, head) => {
+server?.on('upgrade', (request, socket, head) => {
   wss.handleUpgrade(request, socket as any, head, (client) => {
     wss.emit('connection', client, request);
   });
