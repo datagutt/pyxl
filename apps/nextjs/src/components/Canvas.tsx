@@ -144,8 +144,6 @@ export default function Canvas({ room }: CanvasProps) {
     },
   );
 
-  window.oncontextmenu = () => false;
-
   const getPixelPos = (ev: MouseEvent | TouchEvent): PixelPosition => {
     let clientX, clientY;
     if (ev instanceof MouseEvent) {
