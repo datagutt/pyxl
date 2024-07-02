@@ -26,9 +26,10 @@ declare module "next-auth" {
   // }
 }
 
-const useSecureCookies = (process.env.NEXTAUTH_URL ?? '').startsWith('https://')
+const url = (process.env.NEXTAUTH_URL ? process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000' : 'http://localhost:3000')
+const useSecureCookies = new URL(url).includes('https://')
 const cookiePrefix = useSecureCookies ? '__Secure-' : ''
-const hostName = new URL(process.env.NEXTAUTH_URL ?? '').hostname
+const hostName = new URL(url).hostname
 /**
  * Options for NextAuth.js used to configure
  * adapters, providers, callbacks, etc.
