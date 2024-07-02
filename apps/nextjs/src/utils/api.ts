@@ -1,10 +1,9 @@
 import {type NextPageContext} from "next";
 import {
   createTRPCClient,
-  createTRPCClientProxy,
   createWSClient,
+  httpBatchLink,
   loggerLink,
-  unstable_httpBatchStreamLink,
   wsLink,
 } from "@trpc/client";
 import {ssrPrepass} from '@trpc/next/ssrPrepass'
@@ -12,19 +11,18 @@ import {createTRPCNext} from "@trpc/next";
 import superjson from "superjson";
 
 import type {AppRouter} from "@pyxl/api";
-import {getToken} from "next-auth/jwt";
 
 const getBaseUrl = () => {
   if (process.env.NODE_ENV === "production") return `https://api.pyxl.place`; // prod should use pyxl.place (or your domain)
   //if (typeof window !== "undefined") return ""; // browser should use relative url
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}/api/trpc`; // SSR should use vercel url
+  //if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}/api/trpc`; // SSR should use vercel url
 
-  return `http://localhost:3000/api/trpc`; // dev SSR should use localhost
+  return `http://localhost:3001`; // dev SSR should use localhost
 };
 
 function getEndingLink(ctx: NextPageContext | undefined) {
   if (typeof window === "undefined") {
-    return unstable_httpBatchStreamLink({
+    return httpBatchLink({
       url: `${getBaseUrl()}`,
       transformer: superjson,
       headers() {
@@ -44,12 +42,13 @@ function getEndingLink(ctx: NextPageContext | undefined) {
     transformer: superjson,
     client: createWSClient({
       url: async () => {
-        console.log("ctx", ctx);
+        const session = await proxy.auth.getSession.query();
+        console.log("token", session?.user?.access_token);
         // get next auth session cookie
         const cookie = ctx?.req?.headers.cookie
           ?.split(";")
           .find((c) => c.trim().startsWith("__Secure-next-auth.session-token") || c.trim().startsWith("next-auth.session-token"));
-        const sessionToken = cookie?.split("=")[1];
+        const sessionToken = session?.user?.access_token ?? cookie?.split("=")[1];
         return `${process.env.NODE_ENV === "production" ? "wss://ws.pyxl.place" : "ws://localhost:3001"}?sessionToken=${sessionToken}`;
 
       },
@@ -59,7 +58,7 @@ function getEndingLink(ctx: NextPageContext | undefined) {
 
 export const proxy = createTRPCClient<AppRouter>({
   links: [
-    unstable_httpBatchStreamLink({
+    httpBatchLink({
       url: `${getBaseUrl()}`,
       transformer: superjson,
     }),
