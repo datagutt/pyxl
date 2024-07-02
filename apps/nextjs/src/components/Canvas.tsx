@@ -326,6 +326,12 @@ export default function Canvas({ room }: CanvasProps) {
                 3 million online
               </h3>
             </div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-2xl font-bold text-gray-800">
+                Coordinates:{" "}
+                {Math.floor(hoverPixelPosition.x)},{" "}
+                {Math.floor(hoverPixelPosition.y)}
+              </h3>
           </div>
 
           <div className="absolute left-5 top-5 z-10 mx-auto flex h-24">
