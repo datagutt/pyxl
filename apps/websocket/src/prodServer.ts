@@ -2,6 +2,7 @@ import {createHTTPServer} from "@trpc/server/adapters/standalone";
 import {applyWSSHandler} from "@trpc/server/adapters/ws";
 import dotenv from "dotenv";
 import {WebSocketServer} from "ws";
+import cors from 'cors';
 
 import {appRouter, createTRPCContext} from "@pyxl/api";
 
@@ -15,12 +16,21 @@ const dev = process.env.NODE_ENV !== "production";
 const wss = new WebSocketServer({noServer: true});
 const handler = applyWSSHandler({
   wss,
+  // Enable heartbeat messages to keep connection open (disabled by default)
+  keepAlive: {
+    enabled: true,
+    // server ping message interval in milliseconds
+    pingMs: 30000,
+    // connection is terminated if pong message is not received in this many milliseconds
+    pongWaitMs: 5000,
+  },
   router: appRouter,
   createContext: createTRPCContext,
 });
 
 // HTTP server
 const server = createHTTPServer({
+  middleware: cors(),
   router: appRouter,
   createContext: createTRPCContext,
 });

@@ -1,14 +1,11 @@
 import {createHTTPServer} from "@trpc/server/adapters/standalone";
 import {applyWSSHandler} from "@trpc/server/adapters/ws";
-import dotenv from "dotenv";
 import {WebSocketServer} from "ws";
+import cors from 'cors';
 
 import {appRouter, createTRPCContext} from "@pyxl/api";
 
-dotenv.config();
-
-const port = parseInt(process.env.PORT || "3000", 10);
-const dev = process.env.NODE_ENV !== "production";
+const port = '3001';
 
 
 // WS server
@@ -21,13 +18,13 @@ const handler = applyWSSHandler({
 
 // HTTP server
 const server = createHTTPServer({
+  middleware: cors(),
   router: appRouter,
   createContext: createTRPCContext,
 });
 
 console.log(
-  `✅ WebSocket Server listening on http://localhost:${port} as ${dev ? "development" : process.env.NODE_ENV
-  }`,
+  `✅ WebSocket Server listening on http://localhost:${port}`,
 );
 
 process.on("SIGTERM", () => {

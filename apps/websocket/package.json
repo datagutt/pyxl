@@ -31,10 +31,12 @@
     "superjson": "1.9.1",
     "tsx": "^4",
     "ws": "^8.17.1",
-    "zod": "^3.21.4"
+    "zod": "^3.21.4",
+    "cors":"2.8.5"
   },
   "devDependencies": {
     "@pyxl/eslint-config": "workspace:*",
+    "@types/cors": "^2.8.11",
     "@types/node": "^18.15.11",
     "@types/react": "^18.0.33",
     "@types/react-dom": "^18.0.11",
