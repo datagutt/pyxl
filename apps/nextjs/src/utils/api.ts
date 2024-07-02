@@ -25,6 +25,12 @@ function getEndingLink(ctx: NextPageContext | undefined) {
     return httpBatchLink({
       url: `${getBaseUrl()}`,
       transformer: superjson,
+      fetch(url, options) {
+        return fetch(url, {
+          ...options,
+          credentials: 'include',
+        });
+      },
       headers() {
         if (!ctx?.req?.headers) {
           return {};
@@ -60,6 +66,12 @@ export const proxy = createTRPCClient<AppRouter>({
   links: [
     httpBatchLink({
       url: `${getBaseUrl()}`,
+      fetch(url, options) {
+        return fetch(url, {
+          ...options,
+          credentials: 'include',
+        });
+      },
       transformer: superjson,
     }),
   ],
