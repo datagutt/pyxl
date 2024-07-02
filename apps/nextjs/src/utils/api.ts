@@ -15,7 +15,7 @@ import type {AppRouter} from "@pyxl/api";
 const getBaseUrl = () => {
   if (process.env.NODE_ENV === "production") return `https://api.pyxl.place`; // prod should use pyxl.place (or your domain)
   //if (typeof window !== "undefined") return ""; // browser should use relative url
-  //if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}/api/trpc`; // SSR should use vercel url
+  //if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/api/trpc`; // SSR should use vercel url
 
   return `http://localhost:3001`; // dev SSR should use localhost
 };
