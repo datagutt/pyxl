@@ -65,7 +65,7 @@ export const createTRPCContext = async (
    */
   let session: Session | null = null;
 
-  const sessionToken = opts.req.url?.split("sessionToken=")[1];
+  const sessionToken = opts?.info?.connectionParams?.sessionToken;
 
   if (sessionToken) {
     opts.req = {

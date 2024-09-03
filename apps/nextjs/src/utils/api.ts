@@ -47,17 +47,22 @@ function getEndingLink(ctx: NextPageContext | undefined) {
   return wsLink<AppRouter>({
     transformer: superjson,
     client: createWSClient({
-      url: async () => {
+      url: () => {
+        return `${process.env.NODE_ENV === "production" ? "wss://ws.pyxl.place" : "ws://localhost:3001"}`;
+      },
+      connectionParams: async () => {
         const session = await proxy.auth.getSession.query();
+        console.log(session, ctx?.req?.headers);
         console.log("token", session?.user?.access_token);
         // get next auth session cookie
         const cookie = ctx?.req?.headers.cookie
           ?.split(";")
           .find((c) => c.trim().startsWith("__Secure-next-auth.session-token") || c.trim().startsWith("next-auth.session-token"));
         const sessionToken = session?.user?.access_token ?? cookie?.split("=")[1];
-        return `${process.env.NODE_ENV === "production" ? "wss://ws.pyxl.place" : "ws://localhost:3001"}?sessionToken=${sessionToken}`;
-
-      },
+        return {
+          sessionToken,
+        };
+      }
     }),
   });
 }
