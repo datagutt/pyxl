@@ -60,10 +60,10 @@ export class PixelService {
       throw new Error("User not authorized");
     }
     const db = this.db.openDB({name: room.id.toString()});
-    db.transaction(() => {
-      db.clear();
+    await db.transaction(async () => {
+      await db.clearAsync();
     });
-    await prisma.room.delete({where: {id: roomId}});
+    await prisma.room.delete({where: {id: roomId, ownerId: userId}});
   }
 
   public async getPixel(x: number, y: number, roomId: string): Promise<Pixel> {

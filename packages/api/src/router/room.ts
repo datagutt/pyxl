@@ -2,10 +2,7 @@ import {observable} from "@trpc/server/observable";
 import {z} from "zod";
 
 import ee from "../eventEmitter";
-import {
-  PixelService,
-  type Pixel,
-} from "../services/pixel.service";
+import {PixelService, type Pixel} from "../services/pixel.service";
 import {createTRPCRouter, protectedProcedure, publicProcedure} from "../trpc";
 
 const defaultColors = [
@@ -76,14 +73,20 @@ export const roomRouter = createTRPCRouter({
   onBatchPixels: publicProcedure
     .input(
       z.object({
-        id: z.string().nonempty(),
+        id: z.string().min(1),
       }),
     )
-    .subscription(() => {
+    .subscription(({input}) => {
       return observable<Pixel[]>((emit) => {
         const onBatchPixels = (data: Pixel[]) => {
           // emit data to client
-          emit.next(data);
+          emit.next(
+            data
+              .filter((pixel) => pixel.room.id === input.id)
+              .map(
+                (pixel) => ({...pixel, room: undefined} as unknown as Pixel),
+              ),
+          );
         };
         ee.on("room.batchPixels", onBatchPixels);
         // unsubscribe function when client disconnects or stops subscribing
@@ -95,14 +98,17 @@ export const roomRouter = createTRPCRouter({
   onPlace: publicProcedure
     .input(
       z.object({
-        id: z.string().nonempty(),
+        id: z.string().min(1),
       }),
     )
-    .subscription(() => {
+    .subscription(({input}) => {
       return observable<Pixel>((emit) => {
         const onAdd = (data: Pixel) => {
-          // emit data to client
-          emit.next(data);
+          if (data?.room.id !== input.id) {
+            return;
+          }
+          // emit data (without room) to client
+          emit.next({...data, room: undefined} as unknown as Pixel);
         };
         ee.on("room.pixel", onAdd);
         // unsubscribe function when client disconnects or stops subscribing
@@ -114,7 +120,7 @@ export const roomRouter = createTRPCRouter({
   place: protectedProcedure
     .input(
       z.object({
-        roomId: z.string().nonempty(),
+        roomId: z.string().min(1),
         x: z.number().min(0),
         y: z.number().min(0),
         color: z.string().min(1),
