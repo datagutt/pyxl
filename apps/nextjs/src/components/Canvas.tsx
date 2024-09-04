@@ -285,7 +285,7 @@ export default function Canvas({room}: CanvasProps) {
               </div>
             </div>
             <div className="flex-grow flex"> {/* Allow the canvas to take up available space */}
-              <TransformComponent wrapperStyle={{width: "100%", height: "100%"}}>
+              <TransformComponent wrapperStyle={{width: "100%", height: "calc(100vh - 96px)"}}>
                 {hoverPixelPosition && (
                   <div
                     ref={hoverPixelRef}
