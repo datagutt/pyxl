@@ -33,7 +33,7 @@ const Room = () => {
       </Head>
 
       <div className="relative m-0 h-full w-full touch-none select-none overflow-hidden p-0">
-        <div className="flex flex-col items-center justify-center py-2">
+        <div className="flex flex-col items-center justify-center py-2 relative">
           {roomData && <Canvas room={roomData} />}
 
           {status === "pending" && (

@@ -263,7 +263,7 @@ export default function Canvas({room}: CanvasProps) {
             </div>
           </div>
 
-          <div className="absolute z-10 mx-auto flex flex-row md:flex-col h-24 left-5 bottom-5 md:top-5">
+          <div className="absolute z-10 mx-auto flex flex-row md:flex-col h-24 md:left-5 bottom-5 md:top-5">
             <div className="my-2 flex-row md:flex-col justify-center gap-2">
               <button
                 onClick={() => zoomIn()}
