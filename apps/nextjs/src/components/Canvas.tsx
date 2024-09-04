@@ -164,7 +164,6 @@ export default function Canvas({room}: CanvasProps) {
 
   const handleClick = (ev: MouseEvent | TouchEvent) => {
     ev.preventDefault();
-    ev.stopPropagation(); // Add this line to stop event propagation
 
     const {x, y} = getPixelPos(ev);
 
