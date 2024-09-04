@@ -36,6 +36,8 @@ export default function Canvas({room}: CanvasProps) {
   const [selectedColor, setSelectedColor] = useState<string>(
     room?.colors[0]?.value ?? "#000000",
   );
+  const [touchID, setTouchID] = useState(0);
+  const [touchStartTimestamp, setTouchStartTimestamp] = useState(0);
   const [hoverPixelPosition, setHoverPixelPosition] = useState<{
     x: number;
     y: number;
@@ -164,6 +166,7 @@ export default function Canvas({room}: CanvasProps) {
 
   const handleClick = (ev: MouseEvent | TouchEvent) => {
     ev.preventDefault();
+    ev.stopPropagation(); // Add this line to stop event propagation    
 
     const {x, y} = getPixelPos(ev);
 
@@ -190,8 +193,39 @@ export default function Canvas({room}: CanvasProps) {
     if (ev.target !== canvasRef.current) {
       return;
     }
-    handleClick(ev);
+
+    const thisTouch = touchID;
+    setTouchStartTimestamp((new Date()).getTime());
+
+    setTimeout(() => {
+      if (thisTouch == touchID) {
+        navigator.vibrate(200);
+      }
+    }, 350);
   };
+
+  const onTouchEnd = (ev: TouchEvent) => {
+    if (isPanning) return;
+    if (ev.target !== canvasRef.current) {
+      return;
+    }
+
+    setTouchID(touchID + 1);
+    const elapsed = (new Date()).getTime() - touchStartTimestamp;
+    if (elapsed < 100) {
+      handleClick(ev);
+      navigator.vibrate(10);
+    }
+  };
+
+  const onTouchMove = (ev: TouchEvent) => {
+    if (isPanning) return;
+    if (ev.target !== canvasRef.current) {
+      return;
+    }
+
+    setTouchID(touchID + 1);
+  }
 
   const updateHoverPixelPosition = (ev: MouseEvent | TouchEvent) => {
     const {x, y} = getPixelPos(ev);
@@ -202,6 +236,8 @@ export default function Canvas({room}: CanvasProps) {
   useEffect(() => {
     document.addEventListener("mousedown", onMouseDown);
     document.addEventListener("touchstart", onTouchStart);
+    document.addEventListener("touchend", onTouchEnd);
+    document.addEventListener("touchmove", onTouchMove);
     document.addEventListener("contextmenu",
       (ev) => ev.preventDefault());
     document.addEventListener("mousemove", updateHoverPixelPosition);
@@ -210,6 +246,8 @@ export default function Canvas({room}: CanvasProps) {
     return () => {
       document.removeEventListener("mousedown", onMouseDown);
       document.removeEventListener("touchstart", onTouchStart);
+      document.removeEventListener("touchend", onTouchEnd);
+      document.removeEventListener("touchmove", onTouchMove);
       document.removeEventListener("contextmenu",
         (ev) => ev.preventDefault());
       document.removeEventListener("mousemove", updateHoverPixelPosition);
