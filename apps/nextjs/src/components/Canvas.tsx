@@ -219,104 +219,102 @@ export default function Canvas({room}: CanvasProps) {
   }
 
   return (
-    <div className="flex flex-col h-screen">
-      <TransformWrapper
-        ref={transformWrapperRef}
-        initialScale={1}
-        centerZoomedOut
-        minScale={0.2}
-        limitToBounds
-        maxScale={12}
-        onZoom={(zoom) => {
-          setMultiplier(zoom.state.scale);
-        }}
-      >
-        {({zoomIn, zoomOut, resetTransform}) => (
-          <React.Fragment>
-            <div className="pointer-events-none absolute top-10 z-[11] flex flex-col items-center gap-2 rounded-lg bg-gray-200 px-8 py-2">
-              <div className="flex items-center">
-                <h2 className="text-4xl font-bold text-gray-800">{room.name}</h2>
-              </div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-2xl font-bold text-gray-800">
-                  {GAME_CONFIG.PIXEL_WIDTH}x{GAME_CONFIG.PIXEL_HEIGHT} pixels
-                </h3>
-                <span className="text-2xl">•</span>
-                <h3 className="text-2xl font-bold text-gray-800">
-                  3 million online
-                </h3>
-              </div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-2xl font-bold text-gray-800">
-                  Coordinates:{" "}
-                  {Math.floor(hoverPixelPosition.x)},{" "}
-                  {Math.floor(hoverPixelPosition.y)}
-                </h3>
-              </div>
+    <TransformWrapper
+      ref={transformWrapperRef}
+      initialScale={1}
+      centerZoomedOut
+      minScale={0.2}
+      limitToBounds
+      maxScale={12}
+      onZoom={(zoom) => {
+        setMultiplier(zoom.state.scale);
+      }}
+    >
+      {({zoomIn, zoomOut, resetTransform}) => (
+        <React.Fragment>
+          <div className="pointer-events-none absolute top-10 z-[11] flex flex-col items-center gap-2 rounded-lg bg-gray-200 px-8 py-2">
+            <div className="flex items-center">
+              <h2 className="text-4xl font-bold text-gray-800">{room.name}</h2>
             </div>
-
-            <div className="absolute left-5 top-5 z-10 mx-auto flex flex-col h-24">
-              <div className="my-2 flex flex-col justify-center gap-2">
-                <button
-                  onClick={() => zoomIn()}
-                  className="rounded-md bg-gray-200 p-1"
-                >
-                  +
-                </button>
-                <button
-                  onClick={() => zoomOut()}
-                  className="rounded-md bg-gray-200 p-1"
-                >
-                  -
-                </button>
-                <button
-                  onClick={() => resetTransform()}
-                  className="rounded-md bg-gray-200 p-1"
-                >
-                  Reset
-                </button>
-              </div>
-              <div className="flex flex-col gap-2">
-                <GithubPicker
-                  colors={room.colors.map((color) => color.value)}
-                  color={selectedColor}
-                  onChange={(color) => {
-                    console.log("SELECTED COLOR", color.hex);
-                    setSelectedColor(color.hex);
-                  }}
-                />
-              </div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-2xl font-bold text-gray-800">
+                {GAME_CONFIG.PIXEL_WIDTH}x{GAME_CONFIG.PIXEL_HEIGHT} pixels
+              </h3>
+              <span className="text-2xl">•</span>
+              <h3 className="text-2xl font-bold text-gray-800">
+                3 million online
+              </h3>
             </div>
-            <TransformComponent wrapperStyle={{width: "100%", height: "calc(100vh - 96px)"}}>
-              {hoverPixelPosition && (
-                <div
-                  ref={hoverPixelRef}
-                  className="absolute left-0 top-0 z-10"
-                  style={{
-                    width: `${GAME_CONFIG.PIXEL_SIZE}px`,
-                    height: `${GAME_CONFIG.PIXEL_SIZE}px`,
-                    pointerEvents: "none",
-                    transform: `translate(${hoverPixelPosition.x * 100}%, ${hoverPixelPosition.y * 100
-                      }%)`,
-                    backgroundColor: selectedColor,
-                    outline: "solid 6px rgba(0,0,0,0.5)",
-                  }}
-                />
-              )}
-              <canvas
-                ref={canvasRef}
-                className="pixelated cursor-cross relative bg-white ring-2 ring-gray-200"
-                style={{
-                  width: GAME_CONFIG.CANVAS_SIZE,
-                  height: GAME_CONFIG.CANVAS_SIZE,
-                }}
-                width={GAME_CONFIG.PIXEL_WIDTH * GAME_CONFIG.PIXEL_SIZE}
-                height={GAME_CONFIG.PIXEL_HEIGHT * GAME_CONFIG.PIXEL_SIZE}
-              />
-            </TransformComponent>
+            <div className="flex items-center gap-2">
+              <h3 className="text-2xl font-bold text-gray-800">
+                Coordinates:{" "}
+                {Math.floor(hoverPixelPosition.x)},{" "}
+                {Math.floor(hoverPixelPosition.y)}
+              </h3>
+            </div>
           </div>
-        )}
-      </TransformWrapper>
-    </div>
+
+          <div className="absolute left-5 top-5 z-10 mx-auto flex flex-col h-24">
+            <div className="my-2 flex flex-col justify-center gap-2">
+              <button
+                onClick={() => zoomIn()}
+                className="rounded-md bg-gray-200 p-1"
+              >
+                +
+              </button>
+              <button
+                onClick={() => zoomOut()}
+                className="rounded-md bg-gray-200 p-1"
+              >
+                -
+              </button>
+              <button
+                onClick={() => resetTransform()}
+                className="rounded-md bg-gray-200 p-1"
+              >
+                Reset
+              </button>
+            </div>
+            <div className="flex flex-col gap-2">
+              <GithubPicker
+                colors={room.colors.map((color) => color.value)}
+                color={selectedColor}
+                onChange={(color) => {
+                  console.log("SELECTED COLOR", color.hex);
+                  setSelectedColor(color.hex);
+                }}
+              />
+            </div>
+          </div>
+          <TransformComponent wrapperStyle={{width: "100%", height: "calc(100vh - 96px)"}}>
+            {hoverPixelPosition && (
+              <div
+                ref={hoverPixelRef}
+                className="absolute left-0 top-0 z-10"
+                style={{
+                  width: `${GAME_CONFIG.PIXEL_SIZE}px`,
+                  height: `${GAME_CONFIG.PIXEL_SIZE}px`,
+                  pointerEvents: "none",
+                  transform: `translate(${hoverPixelPosition.x * 100}%, ${hoverPixelPosition.y * 100
+                    }%)`,
+                  backgroundColor: selectedColor,
+                  outline: "solid 6px rgba(0,0,0,0.5)",
+                }}
+              />
+            )}
+            <canvas
+              ref={canvasRef}
+              className="pixelated cursor-cross relative bg-white ring-2 ring-gray-200"
+              style={{
+                width: GAME_CONFIG.CANVAS_SIZE,
+                height: GAME_CONFIG.CANVAS_SIZE,
+              }}
+              width={GAME_CONFIG.PIXEL_WIDTH * GAME_CONFIG.PIXEL_SIZE}
+              height={GAME_CONFIG.PIXEL_HEIGHT * GAME_CONFIG.PIXEL_SIZE}
+            />
+          </TransformComponent>
+        </React.Fragment>
+      )}
+    </TransformWrapper>
   );
 }
