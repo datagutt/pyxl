@@ -188,11 +188,11 @@ export default function Canvas({room}: CanvasProps) {
     handleClick(ev);
   };
 
-  const onTouchStart = (ev: TouchEvent) => {
-    if (isPanning) return;
+  const onTouchStart = (_ev: TouchEvent) => {
+    /*if (isPanning) return;
     if (ev.target !== canvasRef.current) {
       return;
-    }
+    }*/
 
     const thisTouch = touchID;
     setTouchStartTimestamp((new Date()).getTime());
@@ -205,10 +205,10 @@ export default function Canvas({room}: CanvasProps) {
   };
 
   const onTouchEnd = (ev: TouchEvent) => {
-    if (isPanning) return;
+    /*if (isPanning) return;
     if (ev.target !== canvasRef.current) {
       return;
-    }
+    }*/
 
     setTouchID(touchID + 1);
     const elapsed = (new Date()).getTime() - touchStartTimestamp;
@@ -218,11 +218,11 @@ export default function Canvas({room}: CanvasProps) {
     }
   };
 
-  const onTouchMove = (ev: TouchEvent) => {
-    if (isPanning) return;
+  const onTouchMove = (_ev: TouchEvent) => {
+    /*if (isPanning) return;
     if (ev.target !== canvasRef.current) {
       return;
-    }
+    }*/
 
     setTouchID(touchID + 1);
   }
