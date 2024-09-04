@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {useEffect, useRef, useState} from "react";
 import GithubPicker from "@uiw/react-color-github";
 import {
   TransformComponent,
@@ -6,7 +6,7 @@ import {
   type ReactZoomPanPinchRef,
 } from "react-zoom-pan-pinch";
 
-import { api, type RouterOutputs } from "~/utils/api";
+import {api, type RouterOutputs} from "~/utils/api";
 
 type CanvasProps = {
   room: NonNullable<RouterOutputs["room"]["byName"]>;
@@ -26,7 +26,7 @@ export const GAME_CONFIG = {
   CANVAS_SIZE: 30 * 100,
 };
 
-export default function Canvas({ room }: CanvasProps) {
+export default function Canvas({room}: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const transformWrapperRef = useRef<ReactZoomPanPinchRef>(null);
   const context = useRef<CanvasRenderingContext2D | null>(null);
@@ -79,18 +79,18 @@ export default function Canvas({ room }: CanvasProps) {
   };
 
   const mutatePixel = api.room.place.useMutation();
-  api.room.getPixels.useQuery(
+  const {data, isSuccess} = api.room.getPixels.useQuery(
     {
       id: room.id,
     },
-    {
-      onSuccess: (data) => {
-        data.forEach((pixel) => {
-          handlePixel(pixel.x, pixel.y, pixel.color);
-        });
-      },
-    },
   );
+  useEffect(() => {
+    if (isSuccess && data) {
+      data.forEach((pixel) => {
+        handlePixel(pixel.x, pixel.y, pixel.color);
+      });
+    }
+  }, [data, isSuccess]);
   const placePixel = (x: number, y: number, color: string) => {
     console.log("WE PLACING", x, y, selectedColor);
     mutatePixel.mutate(
@@ -155,7 +155,7 @@ export default function Canvas({ room }: CanvasProps) {
     }
 
     if (!clientX || !clientY) {
-      return { x: 0, y: 0, clientX: 0, clientY: 0 };
+      return {x: 0, y: 0, clientX: 0, clientY: 0};
     }
 
     if (canvasRef.current) {
@@ -168,13 +168,13 @@ export default function Canvas({ room }: CanvasProps) {
       const x = userX * (GAME_CONFIG.PIXEL_WIDTH / width);
       const y = userY * (GAME_CONFIG.PIXEL_HEIGHT / height);
 
-      return { x, y, clientX, clientY };
+      return {x, y, clientX, clientY};
     }
-    return { x: 0, y: 0, clientX: 0, clientY: 0 };
+    return {x: 0, y: 0, clientX: 0, clientY: 0};
   };
 
   const handleClick = (ev: MouseEvent | TouchEvent) => {
-    const { x, y, clientX, clientY } = getPixelPos(ev);
+    const {x, y, clientX, clientY} = getPixelPos(ev);
 
     console.log("x", x, "y", y, shouldPlacePixel);
 
@@ -185,10 +185,10 @@ export default function Canvas({ room }: CanvasProps) {
       y < GAME_CONFIG.PIXEL_HEIGHT
     ) {
       if (shouldPlacePixel) {
-        setColorPickerPosition({ x: clientX, y: clientY });
+        setColorPickerPosition({x: clientX, y: clientY});
         setShowColorPicker(true);
       } else {
-        setSelectedPixel({ x, y });
+        setSelectedPixel({x, y});
         setShowColorPicker(false);
       }
     }
@@ -214,9 +214,9 @@ export default function Canvas({ room }: CanvasProps) {
   };
 
   const updateHoverPixelPosition = (ev: MouseEvent | TouchEvent) => {
-    const { x, y } = getPixelPos(ev);
+    const {x, y} = getPixelPos(ev);
 
-    setHoverPixelPosition({ x, y });
+    setHoverPixelPosition({x, y});
   };
 
   const handleColorChange = (color: {hex: string}) => {
@@ -309,7 +309,7 @@ export default function Canvas({ room }: CanvasProps) {
         setMultiplier(zoom.state.scale);
       }}
     >
-      {({ zoomIn, zoomOut, resetTransform }) => (
+      {({zoomIn, zoomOut, resetTransform}) => (
         <React.Fragment>
           <div className="pointer-events-none absolute top-10 z-[11] flex flex-col items-center gap-2 rounded-lg bg-gray-200 px-8 py-2">
             <div className="flex items-center">
@@ -330,7 +330,7 @@ export default function Canvas({ room }: CanvasProps) {
                 {Math.floor(hoverPixelPosition.x)},{" "}
                 {Math.floor(hoverPixelPosition.y)}
               </h3>
-              </div>
+            </div>
           </div>
 
           <div className="absolute left-5 top-5 z-10 mx-auto flex h-24">
@@ -370,7 +370,7 @@ export default function Canvas({ room }: CanvasProps) {
               />
             </div>
           )}
-          <TransformComponent wrapperStyle={{ width: "100%", height: "90vh" }}>
+          <TransformComponent wrapperStyle={{width: "100%", height: "90vh"}}>
             {hoverPixelPosition && (
               <div
                 ref={hoverPixelRef}
@@ -379,9 +379,8 @@ export default function Canvas({ room }: CanvasProps) {
                   width: `${GAME_CONFIG.PIXEL_SIZE}px`,
                   height: `${GAME_CONFIG.PIXEL_SIZE}px`,
                   pointerEvents: "none",
-                  transform: `translate(${hoverPixelPosition.x * 100}%, ${
-                    hoverPixelPosition.y * 100
-                  }%)`,
+                  transform: `translate(${hoverPixelPosition.x * 100}%, ${hoverPixelPosition.y * 100
+                    }%)`,
                   backgroundColor: selectedColor,
                   outline: "solid 6px rgba(0,0,0,0.5)",
                 }}
