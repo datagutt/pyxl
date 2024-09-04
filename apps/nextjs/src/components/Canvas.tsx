@@ -163,7 +163,9 @@ export default function Canvas({room}: CanvasProps) {
   };
 
   const handleClick = (ev: MouseEvent | TouchEvent) => {
-    ev.preventDefault(); // Prevent default touch behavior (e.g., scrolling)
+    ev.preventDefault();
+    ev.stopPropagation(); // Add this line to stop event propagation
+
     const {x, y} = getPixelPos(ev);
 
     if (
@@ -233,7 +235,7 @@ export default function Canvas({room}: CanvasProps) {
       onPanningStop={() => setIsPanning(false)}
       onPinchingStart={() => setIsPanning(true)}
       onPinchingStop={() => setIsPanning(false)}
-      onZoom={(zoom, event) => {
+      onZoom={(zoom) => {
         setMultiplier(zoom.state.scale);
       }}
     >
