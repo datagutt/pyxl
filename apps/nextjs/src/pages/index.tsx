@@ -141,17 +141,11 @@ export default Home;
 const AuthShowcase: React.FC = () => {
   const {data: session} = api.auth.getSession.useQuery();
 
-  const {data: secretMessage} = api.auth.getSecretMessage.useQuery(
-    undefined, // no input
-    {enabled: !!session?.user},
-  );
-
   return (
     <div className="flex flex-col items-center justify-center gap-4">
       {session?.user && (
         <p className="text-center text-2xl text-white">
           {session && <span>Logged in as {session?.user?.name}</span>}
-          {secretMessage && <span> - {secretMessage}</span>}
         </p>
       )}
       <button
