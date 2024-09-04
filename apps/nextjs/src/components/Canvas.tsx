@@ -86,8 +86,8 @@ export default function Canvas({room}: CanvasProps) {
     mutatePixel.mutate(
       {
         roomId: room.id,
-        x: Math.floor(x),
-        y: Math.floor(y),
+        x,
+        y,
         color,
       },
       {
@@ -155,8 +155,8 @@ export default function Canvas({room}: CanvasProps) {
       const userX = clientX - rect.x;
       const userY = clientY - rect.y;
 
-      const x = userX * (GAME_CONFIG.PIXEL_WIDTH / width);
-      const y = userY * (GAME_CONFIG.PIXEL_HEIGHT / height);
+      const x = Math.floor(userX * (GAME_CONFIG.PIXEL_WIDTH / width));
+      const y = Math.floor(userY * (GAME_CONFIG.PIXEL_HEIGHT / height))
 
       return {x, y, clientX, clientY};
     }
@@ -282,6 +282,7 @@ export default function Canvas({room}: CanvasProps) {
             </div>
             <div className="flex flex-col gap-2">
               <GithubPicker
+                colors={room.colors.map((color) => color.value)}
                 color={selectedColor}
                 onChange={(color) => setSelectedColor(color.hex)}
               />
