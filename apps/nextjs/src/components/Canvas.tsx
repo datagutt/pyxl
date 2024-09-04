@@ -82,7 +82,7 @@ export default function Canvas({room}: CanvasProps) {
     }
   }, [data, isSuccess]);
   const placePixel = (x: number, y: number, color: string) => {
-    console.log("WE PLACING", x, y, selectedColor);
+    console.log("WE PLACING", x, y, selectedColor, color);
     mutatePixel.mutate(
       {
         roomId: room.id,
@@ -91,8 +91,8 @@ export default function Canvas({room}: CanvasProps) {
         color,
       },
       {
-        onSuccess: (data) => {
-          console.log("WE PLACED", data);
+        onSuccess: () => {
+          console.log("WE PLACED");
           handlePixel(x, y, color);
         },
         onError: (error) => {
@@ -280,40 +280,41 @@ export default function Canvas({room}: CanvasProps) {
                 <GithubPicker
                   colors={room.colors.map((color) => color.value)}
                   color={selectedColor}
-                  onChange={(color) => setSelectedColor(color.hex)}
+                  onChange={(color) => {
+                    console.log("SELECTED COLOR", color.hex);
+                    setSelectedColor(color.hex);
+                  }}
                 />
               </div>
             </div>
-            <div className="flex-grow flex"> {/* Allow the canvas to take up available space */}
-              <TransformComponent wrapperStyle={{width: "100%", height: "calc(100vh - 96px)"}}>
-                {hoverPixelPosition && (
-                  <div
-                    ref={hoverPixelRef}
-                    className="absolute left-0 top-0 z-10"
-                    style={{
-                      width: `${GAME_CONFIG.PIXEL_SIZE}px`,
-                      height: `${GAME_CONFIG.PIXEL_SIZE}px`,
-                      pointerEvents: "none",
-                      transform: `translate(${hoverPixelPosition.x * 100}%, ${hoverPixelPosition.y * 100
-                        }%)`,
-                      backgroundColor: selectedColor,
-                      outline: "solid 6px rgba(0,0,0,0.5)",
-                    }}
-                  />
-                )}
-                <canvas
-                  ref={canvasRef}
-                  className="pixelated cursor-cross relative bg-white ring-2 ring-gray-200"
+            <TransformComponent wrapperStyle={{width: "100%", height: "calc(100vh - 96px)"}}>
+              {hoverPixelPosition && (
+                <div
+                  ref={hoverPixelRef}
+                  className="absolute left-0 top-0 z-10"
                   style={{
-                    width: GAME_CONFIG.CANVAS_SIZE,
-                    height: GAME_CONFIG.CANVAS_SIZE,
+                    width: `${GAME_CONFIG.PIXEL_SIZE}px`,
+                    height: `${GAME_CONFIG.PIXEL_SIZE}px`,
+                    pointerEvents: "none",
+                    transform: `translate(${hoverPixelPosition.x * 100}%, ${hoverPixelPosition.y * 100
+                      }%)`,
+                    backgroundColor: selectedColor,
+                    outline: "solid 6px rgba(0,0,0,0.5)",
                   }}
-                  width={GAME_CONFIG.PIXEL_WIDTH * GAME_CONFIG.PIXEL_SIZE}
-                  height={GAME_CONFIG.PIXEL_HEIGHT * GAME_CONFIG.PIXEL_SIZE}
                 />
-              </TransformComponent>
-            </div>
-          </React.Fragment>
+              )}
+              <canvas
+                ref={canvasRef}
+                className="pixelated cursor-cross relative bg-white ring-2 ring-gray-200"
+                style={{
+                  width: GAME_CONFIG.CANVAS_SIZE,
+                  height: GAME_CONFIG.CANVAS_SIZE,
+                }}
+                width={GAME_CONFIG.PIXEL_WIDTH * GAME_CONFIG.PIXEL_SIZE}
+                height={GAME_CONFIG.PIXEL_HEIGHT * GAME_CONFIG.PIXEL_SIZE}
+              />
+            </TransformComponent>
+          </div>
         )}
       </TransformWrapper>
     </div>
