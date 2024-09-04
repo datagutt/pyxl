@@ -45,7 +45,7 @@ export default function Canvas({room}: CanvasProps) {
     x: 0,
     y: 0,
   });
-  const dpr = window.devicePixelRatio || 1;  // Get the device pixel ratio (default to 1 if undefined)
+  const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;  // Get the device pixel ratio (default to 1 if undefined)
 
   useEffect(() => {
     const canvas = canvasRef.current;
