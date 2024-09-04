@@ -1,13 +1,13 @@
 import Head from "next/head";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import {useRouter} from "next/router";
 
-import { api } from "~/utils/api";
+import {api} from "~/utils/api";
 import Canvas from "~/components/Canvas";
 
 const Room = () => {
   const router = useRouter();
-  const { room } = router.query;
+  const {room} = router.query;
 
   const {
     data: roomData,
@@ -36,7 +36,7 @@ const Room = () => {
         <div className="flex flex-col items-center justify-center py-2">
           {roomData && <Canvas room={roomData} />}
 
-          {status === "loading" && (
+          {status === "pending" && (
             <main className="flex w-full flex-1 flex-col items-center justify-center px-20 text-center text-white">
               <h1 className="text-6xl font-bold">Loading...</h1>
             </main>
