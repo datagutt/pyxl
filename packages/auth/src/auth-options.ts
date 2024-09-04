@@ -1,5 +1,5 @@
 import {PrismaAdapter} from "@next-auth/prisma-adapter";
-import {type DefaultSession, type NextAuthOptions} from "next-auth";
+import {type TokenSet, type DefaultSession, type NextAuthOptions} from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
 
 import {prisma} from "@pyxl/db";
@@ -10,20 +10,23 @@ import {prisma} from "@pyxl/db";
  * and keep type safety
  * @see https://next-auth.js.org/getting-started/typescript#module-augmentation
  **/
-declare module "next-auth" {
-  interface Session extends DefaultSession {
-    user: {
-      id: string;
-      access_token: string;
-      // ...other properties
-      // role: UserRole;
-    } & DefaultSession["user"];
-  }
 
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
+declare module 'next-auth' {
+  /**
+   * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
+   */
+  interface Session extends Record<string, unknown> {
+    access_token: string;
+    expires_in: number;
+    expires: number;
+    user: {
+      avatar: string;
+      name: string;
+      email: string;
+      id: string;
+      type: string;
+    };
+  }
 }
 
 const url = process.env.NEXTAUTH_URL
@@ -107,18 +110,31 @@ export const authOptions: NextAuthOptions = {
     }
   },
   callbacks: {
-    jwt: ({token, user, account}) => {
-      return {...token, ...user, access_token: account?.access_token, id: account?.userId ?? user?.id};
+    jwt({token, user, account}) {
+      const newToken: TokenSet = {...token};
+
+      console.log("ACCOUNT", account);
+      console.log("USER", user);
+      console.log("TOKEN", token);
+      if (user) {
+        const {access_token, refresh_token} = account as Record<string, string>;
+        newToken.access_token = access_token as string;
+        newToken.refresh_token = refresh_token as string;
+        newToken.user = user;
+      }
+
+      return newToken;
     },
     session({session, token}) {
-      if (session.user) {
-        session.user = {
-          ...session.user,
-          id: token?.id as string,
-          access_token: token?.access_token as string,
-        };
-        // session.user.role = user.role; <-- put other properties on the session here
+      if (session?.user) {
+        session.access_token = token.access_token as string;
+        session.refresh_token = token.refresh_token as string;
+
+        session.user.id = token.sub as string;
+        session.user.name = token.name as string;
+        session.user.avatar = token.picture as string;
       }
+
       return session;
     },
   },
