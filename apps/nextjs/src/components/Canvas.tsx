@@ -32,6 +32,7 @@ export default function Canvas({room}: CanvasProps) {
   const context = useRef<CanvasRenderingContext2D | null>(null);
   const hoverPixelRef = useRef<HTMLDivElement>(null);
   const [multiplier, setMultiplier] = useState(1);
+  const [isPanning, setIsPanning] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string>(
     room?.colors[0]?.value ?? "#000000",
   );
@@ -176,6 +177,7 @@ export default function Canvas({room}: CanvasProps) {
   };
 
   const onMouseDown = (ev: MouseEvent) => {
+    if (isPanning) return;
     if (ev.target !== canvasRef.current || ev.button !== 0) {
       return;
     }
@@ -183,6 +185,7 @@ export default function Canvas({room}: CanvasProps) {
   };
 
   const onTouchStart = (ev: TouchEvent) => {
+    if (isPanning) return;
     if (ev.target !== canvasRef.current) {
       return;
     }
@@ -226,7 +229,11 @@ export default function Canvas({room}: CanvasProps) {
       minScale={0.2}
       limitToBounds
       maxScale={12}
-      onZoom={(zoom) => {
+      onPanningStart={() => setIsPanning(true)}
+      onPanningStop={() => setIsPanning(false)}
+      onPinchingStart={() => setIsPanning(true)}
+      onPinchingStop={() => setIsPanning(false)}
+      onZoom={(zoom, event) => {
         setMultiplier(zoom.state.scale);
       }}
     >
