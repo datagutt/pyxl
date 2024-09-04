@@ -108,7 +108,7 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     jwt: ({token, user, account}) => {
-      return {...token, ...user, access_token: account?.access_token};
+      return {...token, ...user, access_token: account?.access_token, id: account?.userId};
     },
     session({session, user, token}) {
       if (session.user) {
