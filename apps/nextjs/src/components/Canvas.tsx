@@ -30,22 +30,11 @@ export default function Canvas({room}: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const transformWrapperRef = useRef<ReactZoomPanPinchRef>(null);
   const context = useRef<CanvasRenderingContext2D | null>(null);
-  const colorPickerRef = useRef<HTMLDivElement>(null);
   const hoverPixelRef = useRef<HTMLDivElement>(null);
   const [multiplier, setMultiplier] = useState(1);
-  const [shouldPlacePixel, setShouldPlacePixel] = useState(false);
-  const [showColorPicker, setShowColorPicker] = useState(false);
-  const [colorPickerPosition, setColorPickerPosition] = useState({
-    x: 0,
-    y: 0,
-  });
   const [selectedColor, setSelectedColor] = useState<string>(
     room?.colors[0]?.value ?? "#000000",
   );
-  const [selectedPixel, setSelectedPixel] = useState<{
-    x: number;
-    y: number;
-  } | null>(null);
   const [hoverPixelPosition, setHoverPixelPosition] = useState<{
     x: number;
     y: number;
@@ -53,6 +42,7 @@ export default function Canvas({room}: CanvasProps) {
     x: 0,
     y: 0,
   });
+
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -96,8 +86,8 @@ export default function Canvas({room}: CanvasProps) {
     mutatePixel.mutate(
       {
         roomId: room.id,
-        x,
-        y,
+        x: Math.floor(x),
+        y: Math.floor(y),
         color,
       },
       {
@@ -173,10 +163,10 @@ export default function Canvas({room}: CanvasProps) {
     return {x: 0, y: 0, clientX: 0, clientY: 0};
   };
 
-  const handleClick = (ev: MouseEvent | TouchEvent) => {
-    const {x, y, clientX, clientY} = getPixelPos(ev);
 
-    console.log("x", x, "y", y, shouldPlacePixel);
+
+  const handleClick = (ev: MouseEvent | TouchEvent) => {
+    const {x, y} = getPixelPos(ev);
 
     if (
       x >= 0 &&
@@ -184,13 +174,7 @@ export default function Canvas({room}: CanvasProps) {
       y >= 0 &&
       y < GAME_CONFIG.PIXEL_HEIGHT
     ) {
-      if (shouldPlacePixel) {
-        setColorPickerPosition({x: clientX, y: clientY});
-        setShowColorPicker(true);
-      } else {
-        setSelectedPixel({x, y});
-        setShowColorPicker(false);
-      }
+      placePixel(x, y, selectedColor); // Directly place pixel with the selected color
     }
   };
 
@@ -198,100 +182,42 @@ export default function Canvas({room}: CanvasProps) {
     if (ev.target !== canvasRef.current) {
       return;
     }
-    switch (ev.button) {
-      case 0:
-        setShouldPlacePixel(true);
-        handleClick(ev);
-        break;
+    if (ev.button === 0) { // Only handle left click
+      handleClick(ev);
     }
   };
+
   const onTouchStart = (ev: TouchEvent) => {
     if (ev.target !== canvasRef.current) {
       return;
     }
-    setShouldPlacePixel(true);
     handleClick(ev);
   };
 
   const updateHoverPixelPosition = (ev: MouseEvent | TouchEvent) => {
     const {x, y} = getPixelPos(ev);
-
     setHoverPixelPosition({x, y});
   };
 
-  const handleColorChange = (color: {hex: string}) => {
-    if (!selectedPixel) {
-      return;
-    }
-    setSelectedColor(color.hex);
-
-    placePixel(selectedPixel.x, selectedPixel.y, color.hex);
-    setSelectedPixel(null);
-    setShowColorPicker(false);
-    setShouldPlacePixel(false);
-  };
 
   useEffect(() => {
     document.addEventListener("mousedown", onMouseDown);
     document.addEventListener("touchstart", onTouchStart);
+    document.addEventListener("contextmenu",
+      (ev) => ev.preventDefault());
+    document.addEventListener("mousemove", updateHoverPixelPosition);
+    document.addEventListener("touchmove", updateHoverPixelPosition);
 
-    document.addEventListener("contextmenu", (ev) => {
-      ev.preventDefault();
-    });
-
-    document.addEventListener("mousemove", (ev) => {
-      setShouldPlacePixel(false);
-      updateHoverPixelPosition(ev);
-    });
-
-    document.addEventListener("touchmove", (ev) => {
-      setShouldPlacePixel(false);
-      updateHoverPixelPosition(ev);
-    });
     return () => {
       document.removeEventListener("mousedown", onMouseDown);
       document.removeEventListener("touchstart", onTouchStart);
-      document.removeEventListener("contextmenu", (ev) => {
-        ev.preventDefault();
-      });
-      document.removeEventListener("mousemove", () => {
-        setShouldPlacePixel(false);
-      });
-      document.removeEventListener("touchmove", () => {
-        setShouldPlacePixel(false);
-      });
+      document.removeEventListener("contextmenu",
+        (ev) => ev.preventDefault());
+      document.removeEventListener("mousemove", updateHoverPixelPosition);
+      document.removeEventListener("touchmove", updateHoverPixelPosition);
     };
-  }, [shouldPlacePixel]);
+  }, []);
 
-  useEffect(() => {
-    if (
-      showColorPicker &&
-      colorPickerRef.current &&
-      typeof colorPickerRef.current.addEventListener === "function"
-    ) {
-      colorPickerRef.current.addEventListener("mousedown", (ev) => {
-        ev.stopPropagation();
-      });
-      colorPickerRef.current.addEventListener("touchstart", (ev) => {
-        ev.stopPropagation();
-      });
-    }
-    return () => {
-      if (
-        !showColorPicker ||
-        !colorPickerRef.current ||
-        typeof colorPickerRef.current.addEventListener === "function"
-      ) {
-        return;
-      }
-      colorPickerRef.current?.removeEventListener("mousedown", (ev) => {
-        ev.stopPropagation();
-      });
-      colorPickerRef.current?.removeEventListener("touchstart", (ev) => {
-        ev.stopPropagation();
-      });
-    };
-  }, [colorPickerRef]);
 
   if (!room) {
     return null;
@@ -333,7 +259,7 @@ export default function Canvas({room}: CanvasProps) {
             </div>
           </div>
 
-          <div className="absolute left-5 top-5 z-10 mx-auto flex h-24">
+          <div className="absolute left-5 top-5 z-10 mx-auto flex flex-col h-24">
             <div className="my-2 flex flex-col justify-center gap-2">
               <button
                 onClick={() => zoomIn()}
@@ -354,22 +280,13 @@ export default function Canvas({room}: CanvasProps) {
                 Reset
               </button>
             </div>
-          </div>
-          {showColorPicker && (
-            <div
-              className="absolute z-10"
-              style={{
-                left: colorPickerPosition.x,
-                top: colorPickerPosition.y,
-              }}
-            >
+            <div className="flex flex-col gap-2">
               <GithubPicker
-                ref={colorPickerRef}
-                colors={room.colors.map((color) => color.value)}
-                onChange={handleColorChange}
+                color={selectedColor}
+                onChange={(color) => setSelectedColor(color.hex)}
               />
             </div>
-          )}
+          </div>
           <TransformComponent wrapperStyle={{width: "100%", height: "90vh"}}>
             {hoverPixelPosition && (
               <div
