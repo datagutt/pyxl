@@ -45,12 +45,15 @@ export default function Canvas({room}: CanvasProps) {
     x: 0,
     y: 0,
   });
-
+  const dpr = window.devicePixelRatio || 1;  // Get the device pixel ratio (default to 1 if undefined)
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
       context.current = canvas.getContext("2d");
+
+      // Scale the context
+      context?.current?.scale(dpr, dpr);
     }
   }, [canvasRef]);
 
@@ -158,8 +161,8 @@ export default function Canvas({room}: CanvasProps) {
     const userX = clientX - rect.x;
     const userY = clientY - rect.y;
 
-    const x = Math.floor(userX * (GAME_CONFIG.PIXEL_WIDTH / width));
-    const y = Math.floor(userY * (GAME_CONFIG.PIXEL_HEIGHT / height));
+    const x = Math.floor(userX * (GAME_CONFIG.PIXEL_WIDTH / (width * dpr)));
+    const y = Math.floor(userY * (GAME_CONFIG.PIXEL_HEIGHT / (height * dpr)));
 
     return {x, y, clientX, clientY};
   };
@@ -352,11 +355,11 @@ export default function Canvas({room}: CanvasProps) {
               ref={canvasRef}
               className="pixelated cursor-cross relative bg-white ring-2 ring-gray-200"
               style={{
-                width: GAME_CONFIG.CANVAS_SIZE,
-                height: GAME_CONFIG.CANVAS_SIZE,
+                width: `${GAME_CONFIG.PIXEL_WIDTH * GAME_CONFIG.PIXEL_SIZE}px`,
+                height: `${GAME_CONFIG.PIXEL_HEIGHT * GAME_CONFIG.PIXEL_SIZE}px`,
               }}
-              width={GAME_CONFIG.PIXEL_WIDTH * GAME_CONFIG.PIXEL_SIZE}
-              height={GAME_CONFIG.PIXEL_HEIGHT * GAME_CONFIG.PIXEL_SIZE}
+              width={GAME_CONFIG.PIXEL_WIDTH * GAME_CONFIG.PIXEL_SIZE * dpr}
+              height={GAME_CONFIG.PIXEL_HEIGHT * GAME_CONFIG.PIXEL_SIZE * dpr}
             />
           </TransformComponent>
         </React.Fragment>
