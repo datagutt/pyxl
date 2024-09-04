@@ -110,11 +110,11 @@ export const authOptions: NextAuthOptions = {
     jwt: ({token, user, account}) => {
       return {...token, ...user, access_token: account?.access_token, id: account?.userId};
     },
-    session({session, user, token}) {
+    session({session, token}) {
       if (session.user) {
         session.user = {
           ...session.user,
-          id: user?.id,
+          id: token?.id as string,
           access_token: token?.access_token as string,
         };
         // session.user.role = user.role; <-- put other properties on the session here
