@@ -63,11 +63,10 @@ export default function Canvas({room}: CanvasProps) {
     }
 
     const dpr = window.devicePixelRatio || 1;  // Get the device pixel ratio
-    const currentScale = transformWrapperRef.current?.state.scale || 1;  // Get the current zoom level
 
     // Adjust the pixel position and size according to the current scale and DPR
-    const scaledX = Math.floor(x * GAME_CONFIG.PIXEL_SIZE * currentScale * dpr);
-    const scaledY = Math.floor(y * GAME_CONFIG.PIXEL_SIZE * currentScale * dpr);
+    const scaledX = Math.floor(x * GAME_CONFIG.PIXEL_SIZE * multiplier * dpr);
+    const scaledY = Math.floor(y * GAME_CONFIG.PIXEL_SIZE * multiplier * dpr);
 
     context.current.fillStyle = color;
     context?.current?.fillRect(
