@@ -58,19 +58,23 @@ export default function Canvas({room}: CanvasProps) {
   }, [canvasRef]);
 
   const handlePixel = (x: number, y: number, color: string) => {
-    if (!context || !context.current) {
+    if (!context?.current) {
       return;
     }
 
-    const scaledX = Math.floor(x / multiplier);
-    const scaledY = Math.floor(y / multiplier);
+    const dpr = window.devicePixelRatio || 1;  // Get the device pixel ratio
+    const currentScale = transformWrapperRef.current?.state.scale || 1;  // Get the current zoom level
+
+    // Adjust the pixel position and size according to the current scale and DPR
+    const scaledX = Math.floor(x * GAME_CONFIG.PIXEL_SIZE * currentScale * dpr);
+    const scaledY = Math.floor(y * GAME_CONFIG.PIXEL_SIZE * currentScale * dpr);
 
     context.current.fillStyle = color;
-    context.current?.fillRect(
-      scaledX * GAME_CONFIG.PIXEL_SIZE,
-      scaledY * GAME_CONFIG.PIXEL_SIZE,
-      GAME_CONFIG.PIXEL_SIZE,
-      GAME_CONFIG.PIXEL_SIZE,
+    context?.current?.fillRect(
+      scaledX,                       // Adjusted X position
+      scaledY,                       // Adjusted Y position
+      GAME_CONFIG.PIXEL_SIZE * dpr,  // Adjust the pixel size for high-DPI devices
+      GAME_CONFIG.PIXEL_SIZE * dpr   // Adjust the pixel size for high-DPI devices
     );
   };
 
@@ -143,6 +147,8 @@ export default function Canvas({room}: CanvasProps) {
 
   const getPixelPos = (ev: MouseEvent | TouchEvent): PixelPosition => {
     let clientX, clientY;
+
+    // Get the clientX and clientY based on the event type
     if (ev instanceof MouseEvent) {
       clientX = ev.clientX;
       clientY = ev.clientY;
@@ -151,18 +157,19 @@ export default function Canvas({room}: CanvasProps) {
       clientY = ev?.touches?.[0]?.clientY;
     }
 
+
     if (!clientX || !clientY || !canvasRef.current) {
       return {x: 0, y: 0, clientX: 0, clientY: 0};
     }
 
     const rect = canvasRef.current.getBoundingClientRect();
-    const width = rect.right - rect.left;
-    const height = rect.bottom - rect.top;
-    const userX = clientX - rect.x;
-    const userY = clientY - rect.y;
 
-    const x = Math.floor(userX * (GAME_CONFIG.PIXEL_WIDTH / (width * dpr)));
-    const y = Math.floor(userY * (GAME_CONFIG.PIXEL_HEIGHT / (height * dpr)));
+    // Adjust for canvas position, DPR, and current zoom level
+    const adjustedX = (clientX - rect.left) * dpr / multiplier;
+    const adjustedY = (clientY - rect.top) * dpr / multiplier;
+
+    const x = Math.floor(adjustedX / GAME_CONFIG.PIXEL_SIZE);
+    const y = Math.floor(adjustedY / GAME_CONFIG.PIXEL_SIZE);
 
     return {x, y, clientX, clientY};
   };
