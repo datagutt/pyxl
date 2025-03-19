@@ -284,7 +284,7 @@ export default function Canvas({ room }: CanvasProps) {
         setMultiplier(zoom.state.scale);
       }}
     >
-      {({ zoomIn, zoomOut, resetTransform }) => (
+      {({ zoomIn, zoomOut, resetTransform, instance }) => (
         <React.Fragment>
           <div className="pointer-events-none absolute top-10 z-[11] flex flex-col items-center gap-2 rounded-lg bg-gray-200 px-8 py-2">
             <div className="flex items-center">
@@ -306,7 +306,6 @@ export default function Canvas({ room }: CanvasProps) {
               </h3>
             </div>
           </div>
-
           <div className="absolute bottom-5 z-10 mx-auto flex h-24 flex-row md:left-5 md:top-5 md:flex-col">
             <div className="my-2 flex-row justify-center gap-2 md:flex-col">
               <button
@@ -339,40 +338,54 @@ export default function Canvas({ room }: CanvasProps) {
               />
             </div>
           </div>
+          {/* Hover pixel positioned based on TransformWrapper's state */}
+          {hoverPixelPosition && (
+            <div
+              ref={hoverPixelRef}
+              className="pointer-events-none absolute z-10"
+              style={{
+                width: `${
+                  GAME_CONFIG.PIXEL_SIZE * instance.getContext().state.scale
+                }px`,
+                height: `${
+                  GAME_CONFIG.PIXEL_SIZE * instance.getContext().state.scale
+                }px`,
+                left: `${
+                  hoverPixelPosition.x *
+                    GAME_CONFIG.PIXEL_SIZE *
+                    instance.getContext().state.scale +
+                  instance.getContext().state.positionX
+                }px`,
+                top: `${
+                  hoverPixelPosition.y *
+                    GAME_CONFIG.PIXEL_SIZE *
+                    instance.getContext().state.scale +
+                  instance.getContext().state.positionY
+                }px`,
+                backgroundColor: selectedColor,
+                outline: `solid ${Math.max(
+                  2,
+                  6 * instance.getContext().state.scale,
+                )}px rgba(0,0,0,0.5)`,
+                opacity: 0.7,
+              }}
+            />
+          )}
           <TransformComponent
             wrapperStyle={{ width: "100%", height: "calc(100vh - 96px)" }}
           >
-            <div className="relative">
-              {hoverPixelPosition && (
-                <div
-                  ref={hoverPixelRef}
-                  className="absolute z-10"
-                  style={{
-                    width: `${GAME_CONFIG.PIXEL_SIZE}px`,
-                    height: `${GAME_CONFIG.PIXEL_SIZE}px`,
-                    pointerEvents: "none",
-                    left: `${hoverPixelPosition.x * GAME_CONFIG.PIXEL_SIZE}px`,
-                    top: `${hoverPixelPosition.y * GAME_CONFIG.PIXEL_SIZE}px`,
-                    backgroundColor: selectedColor,
-                    outline: "solid 6px rgba(0,0,0,0.5)",
-                  }}
-                />
-              )}
-              <canvas
-                ref={canvasRef}
-                className="pixelated cursor-cross relative bg-white ring-2 ring-gray-200"
-                style={{
-                  width: `${
-                    GAME_CONFIG.PIXEL_WIDTH * GAME_CONFIG.PIXEL_SIZE
-                  }px`,
-                  height: `${
-                    GAME_CONFIG.PIXEL_HEIGHT * GAME_CONFIG.PIXEL_SIZE
-                  }px`,
-                }}
-                width={GAME_CONFIG.PIXEL_WIDTH * GAME_CONFIG.PIXEL_SIZE * dpr}
-                height={GAME_CONFIG.PIXEL_HEIGHT * GAME_CONFIG.PIXEL_SIZE * dpr}
-              />
-            </div>
+            <canvas
+              ref={canvasRef}
+              className="pixelated cursor-cross relative bg-white ring-2 ring-gray-200"
+              style={{
+                width: `${GAME_CONFIG.PIXEL_WIDTH * GAME_CONFIG.PIXEL_SIZE}px`,
+                height: `${
+                  GAME_CONFIG.PIXEL_HEIGHT * GAME_CONFIG.PIXEL_SIZE
+                }px`,
+              }}
+              width={GAME_CONFIG.PIXEL_WIDTH * GAME_CONFIG.PIXEL_SIZE * dpr}
+              height={GAME_CONFIG.PIXEL_HEIGHT * GAME_CONFIG.PIXEL_SIZE * dpr}
+            />
           </TransformComponent>
         </React.Fragment>
       )}
