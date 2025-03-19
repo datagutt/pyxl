@@ -32,7 +32,7 @@ const Room = () => {
         <title>{roomData?.name} | pyxl.place</title>
       </Head>
 
-      <div className="relative m-0 h-full w-full touch-none select-none overflow-hidden p-0">
+      <div className="relative m-0 h-full w-full touch-none select-none overflow-hidden p-4 md:p-8">
         <div className="relative flex flex-col items-center justify-center py-2">
           {roomData && <Canvas room={roomData} />}
 
@@ -52,13 +52,17 @@ const Room = () => {
       <footer className="absolute bottom-0 flex h-24 w-full items-center justify-center">
         <div className="text-sm text-white">
           <p>
-            <a href="https://pyxl.place" rel="noopener noreferrer">
+            <a
+              href="https://pyxl.place"
+              rel="noopener noreferrer"
+              className="font-semibold"
+            >
               pyxl.place
             </a>{" "}
             was hacked together by{" "}
             <a
               href="https://x.com/datagutt"
-              className="underline-offset-3 underline decoration-green-500 decoration-wavy decoration-2  hover:text-gray-400 focus:text-gray-400"
+              className="underline-offset-3 underline decoration-green-500 decoration-wavy decoration-2  hover:text-gray-400 focus:text-gray-400"
               rel="noopener noreferrer"
             >
               datagutt

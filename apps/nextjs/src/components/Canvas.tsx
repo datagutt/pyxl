@@ -285,60 +285,46 @@ export default function Canvas({ room }: CanvasProps) {
     >
       {({ zoomIn, zoomOut, resetTransform, instance }) => (
         <React.Fragment>
-          <div className="pointer-events-none absolute top-10 z-[11] flex flex-col items-center gap-2 rounded-lg bg-gray-200 px-8 py-2">
-            <div className="flex items-center">
-              <h2 className="text-4xl font-bold text-gray-800">{room.name}</h2>
-            </div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-2xl font-bold text-gray-800">
-                {GAME_CONFIG.PIXEL_WIDTH}x{GAME_CONFIG.PIXEL_HEIGHT} pixels
-              </h3>
-              <span className="text-2xl">•</span>
-              <h3 className="text-2xl font-bold text-gray-800">
-                3 million online
-              </h3>
-            </div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-2xl font-bold text-gray-800">
-                Coordinates: {Math.floor(hoverPixelPosition.x)},{" "}
-                {Math.floor(hoverPixelPosition.y)}
-              </h3>
-            </div>
+        <div className="pointer-events-none absolute top-5 z-[11] flex w-full flex-col items-center gap-2 rounded-lg bg-white p-4 shadow">
+          <div className="flex items-center">
+            <h2 className="text-2xl font-bold text-gray-800">{room.name}</h2>
           </div>
-          <div className="absolute bottom-5 z-10 mx-auto flex h-24 flex-row md:left-5 md:top-5 md:flex-col">
-            <div className="my-2 flex-row justify-center gap-2 md:flex-col">
-              <button
-                onClick={() => zoomIn()}
-                className="rounded-md bg-gray-200 p-1"
-              >
-                +
-              </button>
-              <button
-                onClick={() => zoomOut()}
-                className="rounded-md bg-gray-200 p-1"
-              >
-                -
-              </button>
-              <button
-                onClick={() => resetTransform()}
-                className="rounded-md bg-gray-200 p-1"
-              >
-                Reset
-              </button>
-            </div>
-            <div className="flex flex-col gap-2">
-              <GithubPicker
-                colors={room.colors.map((color) => color.value)}
-                color={selectedColor}
-                onChange={(color) => {
-                  console.log("SELECTED COLOR", color.hex);
-                  setSelectedColor(color.hex);
-                }}
-              />
-            </div>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-gray-700">
+              {GAME_CONFIG.PIXEL_WIDTH}x{GAME_CONFIG.PIXEL_HEIGHT} pixels
+            </h3>
           </div>
-          {/* Hover pixel positioned based on TransformWrapper's state */}
-          {hoverPixelPosition && instance && instance.getContext()?.state && (
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-gray-700">
+              Coordinates: {Math.floor(hoverPixelPosition.x)},{" "}
+              {Math.floor(hoverPixelPosition.y)}
+            </h3>
+          </div>
+        </div>
+        <div className="absolute bottom-5 left-5 z-10 flex flex-col gap-2 bg-white p-4 shadow rounded-md">
+          <div className="flex flex-col gap-1">
+            <button onClick={() => zoomIn()} className="rounded-md bg-gray-200 p-2 text-gray-700">
+              Zoom In
+            </button>
+            <button onClick={() => zoomOut()} className="rounded-md bg-gray-200 p-2 text-gray-700">
+              Zoom Out
+            </button>
+            <button onClick={() => resetTransform()} className="rounded-md bg-gray-200 p-2 text-gray-700">
+              Reset Zoom
+            </button>
+          </div>
+          <div className="mt-2">
+            <GithubPicker
+              colors={room.colors.map((color) => color.value)}
+              color={selectedColor}
+              onChange={(color) => {
+                console.log("SELECTED COLOR", color.hex);
+                setSelectedColor(color.hex);
+              }}
+            />
+          </div>
+        </div>
+        {hoverPixelPosition && instance && instance.getContext()?.state && (
             <div
               ref={hoverPixelRef}
               className="pointer-events-none absolute z-10"
@@ -365,7 +351,7 @@ export default function Canvas({ room }: CanvasProps) {
                 outline: `solid ${Math.max(
                   2,
                   6 * instance.getContext().state.scale,
-                )}px rgba(0,0,0,0.5)`,
+                )}px rgba(0,0,0,0.7)`,
                 opacity: 0.7,
               }}
             />
@@ -375,7 +361,7 @@ export default function Canvas({ room }: CanvasProps) {
           >
             <canvas
               ref={canvasRef}
-              className="pixelated cursor-cross relative bg-white ring-2 ring-gray-200"
+              className="pixelated cursor-cross relative bg-white ring-2 ring-gray-400"
               style={{
                 width: `${GAME_CONFIG.PIXEL_WIDTH * GAME_CONFIG.PIXEL_SIZE}px`,
                 height: `${
