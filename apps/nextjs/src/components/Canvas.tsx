@@ -31,7 +31,6 @@ export default function Canvas({ room }: CanvasProps) {
   const transformWrapperRef = useRef<ReactZoomPanPinchRef>(null);
   const context = useRef<CanvasRenderingContext2D | null>(null);
   const hoverPixelRef = useRef<HTMLDivElement>(null);
-  const [multiplier, setMultiplier] = useState(1);
   const [isPanning, setIsPanning] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string>(
     room?.colors[0]?.value ?? "#000000",
@@ -154,22 +153,25 @@ export default function Canvas({ room }: CanvasProps) {
       clientY = ev?.touches?.[0]?.clientY;
     }
 
-    if (!clientX || !clientY || !canvasRef.current) {
+    if (
+      !clientX ||
+      !clientY ||
+      !canvasRef.current ||
+      !transformWrapperRef.current
+    ) {
       return { x: 0, y: 0, clientX: 0, clientY: 0 };
     }
 
     const rect = canvasRef.current.getBoundingClientRect();
+    const scale =
+      transformWrapperRef.current.instance?.getContext().state.scale || 1;
 
-    // Calculate the position relative to the canvas
     const relativeX = clientX - rect.left;
     const relativeY = clientY - rect.top;
 
-    // Apply the current zoom level to get the actual position in the canvas
-    // Note: We divide by multiplier because the visual position is scaled by multiplier
-    const canvasX = relativeX / multiplier;
-    const canvasY = relativeY / multiplier;
+    const canvasX = relativeX / scale;
+    const canvasY = relativeY / scale;
 
-    // Calculate the pixel coordinates
     const x = Math.floor(canvasX / GAME_CONFIG.PIXEL_SIZE);
     const y = Math.floor(canvasY / GAME_CONFIG.PIXEL_SIZE);
 
@@ -245,7 +247,7 @@ export default function Canvas({ room }: CanvasProps) {
   };
 
   useEffect(() => {
-    document.addEventListener("mousedown", onMouseDown);
+    //  document.addEventListener("mousedown", onMouseDown);
     document.addEventListener("touchstart", onTouchStart);
     document.addEventListener("touchend", onTouchEnd);
     document.addEventListener("touchmove", onTouchMove);
@@ -254,7 +256,7 @@ export default function Canvas({ room }: CanvasProps) {
     document.addEventListener("touchmove", updateHoverPixelPosition);
 
     return () => {
-      document.removeEventListener("mousedown", onMouseDown);
+      // document.removeEventListener("mousedown", onMouseDown);
       document.removeEventListener("touchstart", onTouchStart);
       document.removeEventListener("touchend", onTouchEnd);
       document.removeEventListener("touchmove", onTouchMove);
@@ -262,7 +264,7 @@ export default function Canvas({ room }: CanvasProps) {
       document.removeEventListener("mousemove", updateHoverPixelPosition);
       document.removeEventListener("touchmove", updateHoverPixelPosition);
     };
-  }, []);
+  });
 
   if (!room) {
     return null;
@@ -280,9 +282,6 @@ export default function Canvas({ room }: CanvasProps) {
       onPanningStop={() => setIsPanning(false)}
       onPinchingStart={() => setIsPanning(true)}
       onPinchingStop={() => setIsPanning(false)}
-      onZoom={(zoom) => {
-        setMultiplier(zoom.state.scale);
-      }}
     >
       {({ zoomIn, zoomOut, resetTransform, instance }) => (
         <React.Fragment>
@@ -339,7 +338,7 @@ export default function Canvas({ room }: CanvasProps) {
             </div>
           </div>
           {/* Hover pixel positioned based on TransformWrapper's state */}
-          {hoverPixelPosition && (
+          {hoverPixelPosition && instance && instance.getContext()?.state && (
             <div
               ref={hoverPixelRef}
               className="pointer-events-none absolute z-10"
@@ -385,6 +384,7 @@ export default function Canvas({ room }: CanvasProps) {
               }}
               width={GAME_CONFIG.PIXEL_WIDTH * GAME_CONFIG.PIXEL_SIZE * dpr}
               height={GAME_CONFIG.PIXEL_HEIGHT * GAME_CONFIG.PIXEL_SIZE * dpr}
+              onClick={(ev) => handleClick(ev as unknown as MouseEvent)}
             />
           </TransformComponent>
         </React.Fragment>
