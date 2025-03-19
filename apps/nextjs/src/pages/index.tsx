@@ -1,16 +1,16 @@
-import {useState} from "react";
-import type {NextPage} from "next";
+import { useState } from "react";
+import type { NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
-import {signIn, signOut} from "next-auth/react";
+import { signIn, signOut } from "next-auth/react";
 
-import {api, type RouterOutputs} from "~/utils/api";
+import { api, type RouterOutputs } from "~/utils/api";
 
 const RoomCard: React.FC<{
   room: RouterOutputs["room"]["all"][number];
   onDelete?: () => void;
   canDelete?: boolean;
-}> = ({room, onDelete, canDelete}) => {
+}> = ({ room, onDelete, canDelete }) => {
   return (
     <Link
       className="flex flex-row rounded-lg bg-white/10 p-4 transition-all hover:scale-[101%]"
@@ -38,7 +38,7 @@ const CreateRoomForm: React.FC = () => {
 
   const [name, setName] = useState("");
 
-  const {mutate, error} = api.room.create.useMutation({
+  const { mutate, error } = api.room.create.useMutation({
     async onSuccess() {
       setName("");
       await utils.room.all.invalidate();
@@ -72,7 +72,7 @@ const CreateRoomForm: React.FC = () => {
   );
 };
 
-const Rooms = ({rooms}: {rooms: RouterOutputs["room"]["all"]}) => {
+const Rooms = ({ rooms }: { rooms: RouterOutputs["room"]["all"] }) => {
   const roomQuery = api.room.all.useQuery(undefined, {
     initialData: rooms,
   });
@@ -109,7 +109,7 @@ const Rooms = ({rooms}: {rooms: RouterOutputs["room"]["all"]}) => {
       )}
     </div>
   );
-}
+};
 
 const Home: NextPage = () => {
   const roomQuery = api.room.all.useQuery();
@@ -139,7 +139,7 @@ const Home: NextPage = () => {
 export default Home;
 
 const AuthShowcase: React.FC = () => {
-  const {data: session} = api.auth.getSession.useQuery();
+  const { data: session } = api.auth.getSession.useQuery();
 
   return (
     <div className="flex flex-col items-center justify-center gap-4">

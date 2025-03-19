@@ -1,9 +1,9 @@
-import {observable} from "@trpc/server/observable";
-import {z} from "zod";
+import { observable } from "@trpc/server/observable";
+import { z } from "zod";
 
 import ee from "../eventEmitter";
-import {PixelService, type Pixel} from "../services/pixel.service";
-import {createTRPCRouter, protectedProcedure, publicProcedure} from "../trpc";
+import { PixelService, type Pixel } from "../services/pixel.service";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 
 const defaultColors = [
   "#000000",
@@ -25,18 +25,18 @@ const defaultColors = [
 ];
 
 export const roomRouter = createTRPCRouter({
-  all: publicProcedure.query(async ({ctx}) => {
+  all: publicProcedure.query(async ({ ctx }) => {
     return await ctx.prisma.room.findMany({
-      orderBy: {id: "desc"},
-      include: {colors: {select: {value: true}}},
+      orderBy: { id: "desc" },
+      include: { colors: { select: { value: true } } },
     });
   }),
   byName: publicProcedure
-    .input(z.object({name: z.string()}))
-    .query(({ctx, input}) => {
+    .input(z.object({ name: z.string() }))
+    .query(({ ctx, input }) => {
       return ctx.prisma.room.findFirst({
-        where: {name: input.name},
-        include: {colors: {select: {value: true}}},
+        where: { name: input.name },
+        include: { colors: { select: { value: true } } },
       });
     }),
   create: protectedProcedure
@@ -45,18 +45,18 @@ export const roomRouter = createTRPCRouter({
         name: z.string().min(1),
       }),
     )
-    .mutation(async ({ctx, input}) => {
+    .mutation(async ({ ctx, input }) => {
       return await ctx.prisma.room.create({
         data: {
           ...input,
           ownerId: ctx.session?.user?.id,
           colors: {
-            create: defaultColors.map((value) => ({value})),
+            create: defaultColors.map((value) => ({ value })),
           },
         },
       });
     }),
-  delete: protectedProcedure.input(z.string()).mutation(({ctx, input}) => {
+  delete: protectedProcedure.input(z.string()).mutation(({ ctx, input }) => {
     const pixelService = PixelService.getInstance();
     if (!ctx.session?.user) {
       throw new Error("User not authenticated");
@@ -64,8 +64,8 @@ export const roomRouter = createTRPCRouter({
     return pixelService.deleteRoom(input, ctx.session.user.id);
   }),
   getPixels: publicProcedure
-    .input(z.object({id: z.string()}))
-    .query(({input}) => {
+    .input(z.object({ id: z.string() }))
+    .query(({ input }) => {
       const pixelService = PixelService.getInstance();
       const pixels = pixelService.getPixels(input.id);
       return pixels;
@@ -76,7 +76,7 @@ export const roomRouter = createTRPCRouter({
         id: z.string().min(1),
       }),
     )
-    .subscription(({input}) => {
+    .subscription(({ input }) => {
       return observable<Pixel[]>((emit) => {
         const onBatchPixels = (data: Pixel[]) => {
           // emit data to client
@@ -84,7 +84,7 @@ export const roomRouter = createTRPCRouter({
             data
               .filter((pixel) => pixel.room.id === input.id)
               .map(
-                (pixel) => ({...pixel, room: undefined} as unknown as Pixel),
+                (pixel) => ({ ...pixel, room: undefined } as unknown as Pixel),
               ),
           );
         };
@@ -101,14 +101,14 @@ export const roomRouter = createTRPCRouter({
         id: z.string().min(1),
       }),
     )
-    .subscription(({input}) => {
+    .subscription(({ input }) => {
       return observable<Pixel>((emit) => {
         const onAdd = (data: Pixel) => {
           if (data?.room.id !== input.id) {
             return;
           }
           // emit data (without room) to client
-          emit.next({...data, room: undefined} as unknown as Pixel);
+          emit.next({ ...data, room: undefined } as unknown as Pixel);
         };
         ee.on("room.pixel", onAdd);
         // unsubscribe function when client disconnects or stops subscribing
@@ -126,7 +126,7 @@ export const roomRouter = createTRPCRouter({
         color: z.string().min(1),
       }),
     )
-    .mutation(async ({ctx, input}) => {
+    .mutation(async ({ ctx, input }) => {
       const pixelService = PixelService.getInstance();
       // the service emits an event
       await pixelService.setPixel(

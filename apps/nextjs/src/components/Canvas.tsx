@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, { useEffect, useRef, useState } from "react";
 import GithubPicker from "@uiw/react-color-github";
 import {
   TransformComponent,
@@ -6,7 +6,7 @@ import {
   type ReactZoomPanPinchRef,
 } from "react-zoom-pan-pinch";
 
-import {api, type RouterOutputs} from "~/utils/api";
+import { api, type RouterOutputs } from "~/utils/api";
 
 type CanvasProps = {
   room: NonNullable<RouterOutputs["room"]["byName"]>;
@@ -26,7 +26,7 @@ export const GAME_CONFIG = {
   CANVAS_SIZE: 30 * 100,
 };
 
-export default function Canvas({room}: CanvasProps) {
+export default function Canvas({ room }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const transformWrapperRef = useRef<ReactZoomPanPinchRef>(null);
   const context = useRef<CanvasRenderingContext2D | null>(null);
@@ -45,7 +45,7 @@ export default function Canvas({room}: CanvasProps) {
     x: 0,
     y: 0,
   });
-  const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;  // Get the device pixel ratio (default to 1 if undefined)
+  const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1; // Get the device pixel ratio (default to 1 if undefined)
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -62,27 +62,26 @@ export default function Canvas({room}: CanvasProps) {
       return;
     }
 
-    const dpr = window.devicePixelRatio || 1;  // Get the device pixel ratio
+    // Calculate the pixel position based on the pixel coordinates
+    const pixelX = x * GAME_CONFIG.PIXEL_SIZE;
+    const pixelY = y * GAME_CONFIG.PIXEL_SIZE;
 
-    // Adjust the pixel position and size according to the current scale and DPR
-    const scaledX = Math.floor(x * GAME_CONFIG.PIXEL_SIZE * multiplier * dpr);
-    const scaledY = Math.floor(y * GAME_CONFIG.PIXEL_SIZE * multiplier * dpr);
-
+    // Set the fill color
     context.current.fillStyle = color;
-    context?.current?.fillRect(
-      scaledX,                       // Adjusted X position
-      scaledY,                       // Adjusted Y position
-      GAME_CONFIG.PIXEL_SIZE * dpr,  // Adjust the pixel size for high-DPI devices
-      GAME_CONFIG.PIXEL_SIZE * dpr   // Adjust the pixel size for high-DPI devices
+
+    // Fill the pixel
+    context.current.fillRect(
+      pixelX * dpr,
+      pixelY * dpr,
+      GAME_CONFIG.PIXEL_SIZE * dpr,
+      GAME_CONFIG.PIXEL_SIZE * dpr,
     );
   };
 
   const mutatePixel = api.room.place.useMutation();
-  const {data, isSuccess} = api.room.getPixels.useQuery(
-    {
-      id: room.id,
-    },
-  );
+  const { data, isSuccess } = api.room.getPixels.useQuery({
+    id: room.id,
+  });
   useEffect(() => {
     if (isSuccess && data) {
       data.forEach((pixel) => {
@@ -143,7 +142,6 @@ export default function Canvas({room}: CanvasProps) {
     },
   );
 
-
   const getPixelPos = (ev: MouseEvent | TouchEvent): PixelPosition => {
     let clientX, clientY;
 
@@ -156,28 +154,33 @@ export default function Canvas({room}: CanvasProps) {
       clientY = ev?.touches?.[0]?.clientY;
     }
 
-
     if (!clientX || !clientY || !canvasRef.current) {
-      return {x: 0, y: 0, clientX: 0, clientY: 0};
+      return { x: 0, y: 0, clientX: 0, clientY: 0 };
     }
 
     const rect = canvasRef.current.getBoundingClientRect();
 
-    // Adjust for canvas position, DPR, and current zoom level
-    const adjustedX = (clientX - rect.left) * dpr / multiplier;
-    const adjustedY = (clientY - rect.top) * dpr / multiplier;
+    // Calculate the position relative to the canvas
+    const relativeX = clientX - rect.left;
+    const relativeY = clientY - rect.top;
 
-    const x = Math.floor(adjustedX / GAME_CONFIG.PIXEL_SIZE);
-    const y = Math.floor(adjustedY / GAME_CONFIG.PIXEL_SIZE);
+    // Apply the current zoom level to get the actual position in the canvas
+    // Note: We divide by multiplier because the visual position is scaled by multiplier
+    const canvasX = relativeX / multiplier;
+    const canvasY = relativeY / multiplier;
 
-    return {x, y, clientX, clientY};
+    // Calculate the pixel coordinates
+    const x = Math.floor(canvasX / GAME_CONFIG.PIXEL_SIZE);
+    const y = Math.floor(canvasY / GAME_CONFIG.PIXEL_SIZE);
+
+    return { x, y, clientX, clientY };
   };
 
   const handleClick = (ev: MouseEvent | TouchEvent) => {
     ev.preventDefault();
-    ev.stopPropagation(); // Add this line to stop event propagation    
+    ev.stopPropagation(); // Add this line to stop event propagation
 
-    const {x, y} = getPixelPos(ev);
+    const { x, y } = getPixelPos(ev);
 
     if (
       x >= 0 &&
@@ -204,7 +207,7 @@ export default function Canvas({room}: CanvasProps) {
     }*/
 
     const thisTouch = touchID;
-    setTouchStartTimestamp((new Date()).getTime());
+    setTouchStartTimestamp(new Date().getTime());
 
     setTimeout(() => {
       if (thisTouch == touchID) {
@@ -220,7 +223,7 @@ export default function Canvas({room}: CanvasProps) {
     }*/
 
     setTouchID(touchID + 1);
-    const elapsed = (new Date()).getTime() - touchStartTimestamp;
+    const elapsed = new Date().getTime() - touchStartTimestamp;
     if (elapsed < 100) {
       handleClick(ev);
       navigator.vibrate(10);
@@ -234,21 +237,19 @@ export default function Canvas({room}: CanvasProps) {
     }*/
 
     setTouchID(touchID + 1);
-  }
-
-  const updateHoverPixelPosition = (ev: MouseEvent | TouchEvent) => {
-    const {x, y} = getPixelPos(ev);
-    setHoverPixelPosition({x, y});
   };
 
+  const updateHoverPixelPosition = (ev: MouseEvent | TouchEvent) => {
+    const { x, y } = getPixelPos(ev);
+    setHoverPixelPosition({ x, y });
+  };
 
   useEffect(() => {
     document.addEventListener("mousedown", onMouseDown);
     document.addEventListener("touchstart", onTouchStart);
     document.addEventListener("touchend", onTouchEnd);
     document.addEventListener("touchmove", onTouchMove);
-    document.addEventListener("contextmenu",
-      (ev) => ev.preventDefault());
+    document.addEventListener("contextmenu", (ev) => ev.preventDefault());
     document.addEventListener("mousemove", updateHoverPixelPosition);
     document.addEventListener("touchmove", updateHoverPixelPosition);
 
@@ -257,13 +258,11 @@ export default function Canvas({room}: CanvasProps) {
       document.removeEventListener("touchstart", onTouchStart);
       document.removeEventListener("touchend", onTouchEnd);
       document.removeEventListener("touchmove", onTouchMove);
-      document.removeEventListener("contextmenu",
-        (ev) => ev.preventDefault());
+      document.removeEventListener("contextmenu", (ev) => ev.preventDefault());
       document.removeEventListener("mousemove", updateHoverPixelPosition);
       document.removeEventListener("touchmove", updateHoverPixelPosition);
     };
   }, []);
-
 
   if (!room) {
     return null;
@@ -285,7 +284,7 @@ export default function Canvas({room}: CanvasProps) {
         setMultiplier(zoom.state.scale);
       }}
     >
-      {({zoomIn, zoomOut, resetTransform}) => (
+      {({ zoomIn, zoomOut, resetTransform }) => (
         <React.Fragment>
           <div className="pointer-events-none absolute top-10 z-[11] flex flex-col items-center gap-2 rounded-lg bg-gray-200 px-8 py-2">
             <div className="flex items-center">
@@ -302,15 +301,14 @@ export default function Canvas({room}: CanvasProps) {
             </div>
             <div className="flex items-center gap-2">
               <h3 className="text-2xl font-bold text-gray-800">
-                Coordinates:{" "}
-                {Math.floor(hoverPixelPosition.x)},{" "}
+                Coordinates: {Math.floor(hoverPixelPosition.x)},{" "}
                 {Math.floor(hoverPixelPosition.y)}
               </h3>
             </div>
           </div>
 
-          <div className="absolute z-10 mx-auto flex flex-row md:flex-col h-24 md:left-5 bottom-5 md:top-5">
-            <div className="my-2 flex-row md:flex-col justify-center gap-2">
+          <div className="absolute bottom-5 z-10 mx-auto flex h-24 flex-row md:left-5 md:top-5 md:flex-col">
+            <div className="my-2 flex-row justify-center gap-2 md:flex-col">
               <button
                 onClick={() => zoomIn()}
                 className="rounded-md bg-gray-200 p-1"
@@ -341,7 +339,9 @@ export default function Canvas({room}: CanvasProps) {
               />
             </div>
           </div>
-          <TransformComponent wrapperStyle={{width: "100%", height: "calc(100vh - 96px)"}}>
+          <TransformComponent
+            wrapperStyle={{ width: "100%", height: "calc(100vh - 96px)" }}
+          >
             {hoverPixelPosition && (
               <div
                 ref={hoverPixelRef}
@@ -350,8 +350,9 @@ export default function Canvas({room}: CanvasProps) {
                   width: `${GAME_CONFIG.PIXEL_SIZE}px`,
                   height: `${GAME_CONFIG.PIXEL_SIZE}px`,
                   pointerEvents: "none",
-                  transform: `translate(${hoverPixelPosition.x * 100}%, ${hoverPixelPosition.y * 100
-                    }%)`,
+                  transform: `translate(${
+                    hoverPixelPosition.x * GAME_CONFIG.PIXEL_SIZE
+                  }px, ${hoverPixelPosition.y * GAME_CONFIG.PIXEL_SIZE}px)`,
                   backgroundColor: selectedColor,
                   outline: "solid 6px rgba(0,0,0,0.5)",
                 }}
@@ -362,7 +363,9 @@ export default function Canvas({room}: CanvasProps) {
               className="pixelated cursor-cross relative bg-white ring-2 ring-gray-200"
               style={{
                 width: `${GAME_CONFIG.PIXEL_WIDTH * GAME_CONFIG.PIXEL_SIZE}px`,
-                height: `${GAME_CONFIG.PIXEL_HEIGHT * GAME_CONFIG.PIXEL_SIZE}px`,
+                height: `${
+                  GAME_CONFIG.PIXEL_HEIGHT * GAME_CONFIG.PIXEL_SIZE
+                }px`,
               }}
               width={GAME_CONFIG.PIXEL_WIDTH * GAME_CONFIG.PIXEL_SIZE * dpr}
               height={GAME_CONFIG.PIXEL_HEIGHT * GAME_CONFIG.PIXEL_SIZE * dpr}

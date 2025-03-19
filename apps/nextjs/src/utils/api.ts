@@ -1,4 +1,4 @@
-import {type NextPageContext} from "next";
+import { type NextPageContext } from "next";
 import {
   createTRPCClient,
   createWSClient,
@@ -6,16 +6,17 @@ import {
   loggerLink,
   wsLink,
 } from "@trpc/client";
-import {ssrPrepass} from '@trpc/next/ssrPrepass'
-import {createTRPCNext} from "@trpc/next";
+import { createTRPCNext } from "@trpc/next";
+import { ssrPrepass } from "@trpc/next/ssrPrepass";
 import superjson from "superjson";
 
-import type {AppRouter} from "@pyxl/api";
+import type { AppRouter } from "@pyxl/api";
 
 const getBaseUrl = () => {
   if (process.env.NODE_ENV === "production") return `https://api.pyxl.place`; // prod should use pyxl.place (or your domain)
   //if (typeof window !== "undefined") return ""; // browser should use relative url
-  //if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/api/trpc`; // SSR should use vercel url
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL)
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/api/trpc`; // SSR should use vercel url
 
   return `http://localhost:3001`; // dev SSR should use localhost
 };
@@ -28,7 +29,7 @@ function getEndingLink(ctx: NextPageContext | undefined) {
       fetch(url, options) {
         return fetch(url, {
           ...options,
-          credentials: 'include',
+          credentials: "include",
         });
       },
       headers() {
@@ -38,7 +39,7 @@ function getEndingLink(ctx: NextPageContext | undefined) {
         // on ssr, forward client's headers to the server
         return {
           ...ctx.req.headers,
-          'x-ssr': '1',
+          "x-ssr": "1",
         };
       },
     });
@@ -48,7 +49,11 @@ function getEndingLink(ctx: NextPageContext | undefined) {
     transformer: superjson,
     client: createWSClient({
       url: () => {
-        return `${process.env.NODE_ENV === "production" ? "wss://ws.pyxl.place" : "ws://localhost:3001"}`;
+        return `${
+          process.env.NODE_ENV === "production"
+            ? "wss://ws.pyxl.place"
+            : "ws://localhost:3001"
+        }`;
       },
       connectionParams: async () => {
         const session = await proxy.auth.getSession.query();
@@ -57,12 +62,17 @@ function getEndingLink(ctx: NextPageContext | undefined) {
         // get next auth session cookie
         const cookie = ctx?.req?.headers.cookie
           ?.split(";")
-          .find((c) => c.trim().startsWith("__Secure-next-auth.session-token") || c.trim().startsWith("next-auth.session-token"));
-        const sessionToken = session?.user?.access_token ?? cookie?.split("=")[1];
+          .find(
+            (c) =>
+              c.trim().startsWith("__Secure-next-auth.session-token") ||
+              c.trim().startsWith("next-auth.session-token"),
+          );
+        const sessionToken =
+          session?.user?.access_token ?? cookie?.split("=")[1];
         return {
           sessionToken,
         };
-      }
+      },
     }),
   });
 }
@@ -74,7 +84,7 @@ export const proxy = createTRPCClient<AppRouter>({
       fetch(url, options) {
         return fetch(url, {
           ...options,
-          credentials: 'include',
+          credentials: "include",
         });
       },
       transformer: superjson,
@@ -83,12 +93,12 @@ export const proxy = createTRPCClient<AppRouter>({
 });
 
 export const api = createTRPCNext<AppRouter>({
-  config({ctx}) {
+  config({ ctx }) {
     return {
       /**
        * @link https://tanstack.com/query/v4/docs/react/reference/QueryClient
        */
-      queryClientConfig: {defaultOptions: {queries: {staleTime: 60}}},
+      queryClientConfig: { defaultOptions: { queries: { staleTime: 60 } } },
       links: [
         // adds pretty logs to your console in development and logs errors in production
         loggerLink({
@@ -106,4 +116,4 @@ export const api = createTRPCNext<AppRouter>({
   ssr: true,
 });
 
-export {type RouterInputs, type RouterOutputs} from "@pyxl/api";
+export { type RouterInputs, type RouterOutputs } from "@pyxl/api";

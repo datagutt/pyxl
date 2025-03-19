@@ -1,8 +1,12 @@
-import {PrismaAdapter} from "@next-auth/prisma-adapter";
-import {type TokenSet, type DefaultSession, type NextAuthOptions} from "next-auth";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import {
+  type DefaultSession,
+  type NextAuthOptions,
+  type TokenSet,
+} from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
 
-import {prisma} from "@pyxl/db";
+import { prisma } from "@pyxl/db";
 
 /**
  * Module augmentation for `next-auth` types
@@ -11,7 +15,7 @@ import {prisma} from "@pyxl/db";
  * @see https://next-auth.js.org/getting-started/typescript#module-augmentation
  **/
 
-declare module 'next-auth' {
+declare module "next-auth" {
   /**
    * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
    */
@@ -32,8 +36,8 @@ declare module 'next-auth' {
 const url = process.env.NEXTAUTH_URL
   ? process.env.NEXTAUTH_URL
   : process.env.VERCEL_PROJECT_PRODUCTION_URL
-    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : "http://localhost:3000";
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  : "http://localhost:3000";
 const useSecureCookies = url.includes("https://");
 const cookiePrefix = useSecureCookies ? "__Secure-" : "";
 const hostName = new URL(url).hostname;
@@ -105,19 +109,21 @@ export const authOptions: NextAuthOptions = {
         path: "/",
         secure: useSecureCookies,
         domain: hostName == "localhost" ? hostName : "." + hostName, // add a . in front so that subdomains are included
-
       },
-    }
+    },
   },
   callbacks: {
-    jwt({token, user, account}) {
-      const newToken: TokenSet = {...token};
+    jwt({ token, user, account }) {
+      const newToken: TokenSet = { ...token };
 
       console.log("ACCOUNT", account);
       console.log("USER", user);
       console.log("TOKEN", token);
       if (user) {
-        const {access_token, refresh_token} = account as Record<string, string>;
+        const { access_token, refresh_token } = account as Record<
+          string,
+          string
+        >;
         newToken.access_token = access_token as string;
         newToken.refresh_token = refresh_token as string;
         newToken.user = user;
@@ -125,7 +131,7 @@ export const authOptions: NextAuthOptions = {
 
       return newToken;
     },
-    session({session, token}) {
+    session({ session, token }) {
       if (session?.user) {
         session.access_token = token.access_token as string;
         session.refresh_token = token.refresh_token as string;

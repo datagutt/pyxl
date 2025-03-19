@@ -7,18 +7,18 @@
  * The pieces you will need to use are documented accordingly near the end
  */
 
-import {type IncomingMessage} from "http";
-import type {GetServerSidePropsContext} from "next";
-import {TRPCError, initTRPC} from "@trpc/server";
-import {type CreateNextContextOptions} from "@trpc/server/adapters/next";
-import {type NodeHTTPCreateContextFnOptions} from "@trpc/server/dist/adapters/node-http";
-import {getSession} from "next-auth/react";
+import { type IncomingMessage } from "http";
+import type { GetServerSidePropsContext } from "next";
+import { TRPCError, initTRPC } from "@trpc/server";
+import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
+import { type NodeHTTPCreateContextFnOptions } from "@trpc/server/dist/adapters/node-http";
+import { getSession } from "next-auth/react";
 import superjson from "superjson";
-import {type WebSocket} from "ws";
-import {ZodError} from "zod";
+import { type WebSocket } from "ws";
+import { ZodError } from "zod";
 
-import {getServerSession, type Session} from "@pyxl/auth";
-import {prisma} from "@pyxl/db";
+import { getServerSession, type Session } from "@pyxl/auth";
+import { prisma } from "@pyxl/db";
 
 /**
  * 1. CONTEXT
@@ -99,7 +99,7 @@ export const createTRPCContext = async (
  */
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
-  errorFormatter({shape, error}) {
+  errorFormatter({ shape, error }) {
     return {
       ...shape,
       data: {
@@ -137,14 +137,14 @@ export const publicProcedure = t.procedure;
  * Reusable middleware that enforces users are logged in before running the
  * procedure
  */
-const enforceUserIsAuthed = t.middleware(({ctx, next}) => {
+const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
   if (!ctx.session?.user) {
-    throw new TRPCError({code: "UNAUTHORIZED"});
+    throw new TRPCError({ code: "UNAUTHORIZED" });
   }
   return next({
     ctx: {
       // infers the `session` as non-nullable
-      session: {...ctx.session, user: ctx.session.user},
+      session: { ...ctx.session, user: ctx.session.user },
     },
   });
 });
