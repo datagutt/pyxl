@@ -247,7 +247,7 @@ export default function Canvas({ room }: CanvasProps) {
   };
 
   useEffect(() => {
-    //  document.addEventListener("mousedown", onMouseDown);
+    document.addEventListener("mousedown", onMouseDown);
     document.addEventListener("touchstart", onTouchStart);
     document.addEventListener("touchend", onTouchEnd);
     document.addEventListener("touchmove", onTouchMove);
@@ -256,7 +256,7 @@ export default function Canvas({ room }: CanvasProps) {
     document.addEventListener("touchmove", updateHoverPixelPosition);
 
     return () => {
-      // document.removeEventListener("mousedown", onMouseDown);
+      document.removeEventListener("mousedown", onMouseDown);
       document.removeEventListener("touchstart", onTouchStart);
       document.removeEventListener("touchend", onTouchEnd);
       document.removeEventListener("touchmove", onTouchMove);
@@ -384,7 +384,6 @@ export default function Canvas({ room }: CanvasProps) {
               }}
               width={GAME_CONFIG.PIXEL_WIDTH * GAME_CONFIG.PIXEL_SIZE * dpr}
               height={GAME_CONFIG.PIXEL_HEIGHT * GAME_CONFIG.PIXEL_SIZE * dpr}
-              onClick={(ev) => handleClick(ev as unknown as MouseEvent)}
             />
           </TransformComponent>
         </React.Fragment>
