@@ -13,15 +13,9 @@ import superjson from "superjson";
 import type { AppRouter } from "@pyxl/api";
 
 const getBaseUrl = () => {
-  if (
-    process.env.NODE_ENV === "production" ||
-    process.env.VERCEL_PROJECT_PRODUCTION_URL ||
-    process.env.VERCEL_URL ||
-    typeof window !== "undefined"
-  )
-    return `https://api.pyxl.place`; // prod should use pyxl.place (or your domain)
+  if (process.env.NODE_ENV == "development") return `http://localhost:3001`; // dev SSR should use localhost
 
-  return `http://localhost:3001`; // dev SSR should use localhost
+  return `https://api.pyxl.place`; // prod should use pyxl.place (or your domain)
 };
 
 function getEndingLink(ctx: NextPageContext | undefined) {
@@ -41,7 +35,12 @@ function getEndingLink(ctx: NextPageContext | undefined) {
         }
         // on ssr, forward client's headers to the server
         return {
-          ...ctx.req.headers,
+          cookie: ctx.req.headers.cookie,
+          authorization: ctx.req.headers.authorization,
+          "x-forwarded-for": ctx.req.headers["x-forwarded-for"],
+          "x-forwarded-proto": ctx.req.headers["x-forwarded-proto"],
+          "x-forwarded-host": ctx.req.headers["x-forwarded-host"],
+          "x-real-ip": ctx.req.headers["x-real-ip"],
           "x-ssr": "1",
         };
       },
