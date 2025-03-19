@@ -8,7 +8,7 @@ import { appRouter, createTRPCContext } from "@pyxl/api";
 
 dotenv.config();
 
-const port = parseInt(process.env.PORT || "3000", 10);
+const port = parseInt(process.env.PORT ?? "4000", 10);
 const dev = process.env.NODE_ENV !== "production";
 
 // WS server
