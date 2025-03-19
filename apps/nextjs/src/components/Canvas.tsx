@@ -342,34 +342,37 @@ export default function Canvas({ room }: CanvasProps) {
           <TransformComponent
             wrapperStyle={{ width: "100%", height: "calc(100vh - 96px)" }}
           >
-            {hoverPixelPosition && (
-              <div
-                ref={hoverPixelRef}
-                className="absolute left-0 top-0 z-10"
+            <div className="relative">
+              {hoverPixelPosition && (
+                <div
+                  ref={hoverPixelRef}
+                  className="absolute z-10"
+                  style={{
+                    width: `${GAME_CONFIG.PIXEL_SIZE}px`,
+                    height: `${GAME_CONFIG.PIXEL_SIZE}px`,
+                    pointerEvents: "none",
+                    left: `${hoverPixelPosition.x * GAME_CONFIG.PIXEL_SIZE}px`,
+                    top: `${hoverPixelPosition.y * GAME_CONFIG.PIXEL_SIZE}px`,
+                    backgroundColor: selectedColor,
+                    outline: "solid 6px rgba(0,0,0,0.5)",
+                  }}
+                />
+              )}
+              <canvas
+                ref={canvasRef}
+                className="pixelated cursor-cross relative bg-white ring-2 ring-gray-200"
                 style={{
-                  width: `${GAME_CONFIG.PIXEL_SIZE}px`,
-                  height: `${GAME_CONFIG.PIXEL_SIZE}px`,
-                  pointerEvents: "none",
-                  transform: `translate(${
-                    hoverPixelPosition.x * GAME_CONFIG.PIXEL_SIZE
-                  }px, ${hoverPixelPosition.y * GAME_CONFIG.PIXEL_SIZE}px)`,
-                  backgroundColor: selectedColor,
-                  outline: "solid 6px rgba(0,0,0,0.5)",
+                  width: `${
+                    GAME_CONFIG.PIXEL_WIDTH * GAME_CONFIG.PIXEL_SIZE
+                  }px`,
+                  height: `${
+                    GAME_CONFIG.PIXEL_HEIGHT * GAME_CONFIG.PIXEL_SIZE
+                  }px`,
                 }}
+                width={GAME_CONFIG.PIXEL_WIDTH * GAME_CONFIG.PIXEL_SIZE * dpr}
+                height={GAME_CONFIG.PIXEL_HEIGHT * GAME_CONFIG.PIXEL_SIZE * dpr}
               />
-            )}
-            <canvas
-              ref={canvasRef}
-              className="pixelated cursor-cross relative bg-white ring-2 ring-gray-200"
-              style={{
-                width: `${GAME_CONFIG.PIXEL_WIDTH * GAME_CONFIG.PIXEL_SIZE}px`,
-                height: `${
-                  GAME_CONFIG.PIXEL_HEIGHT * GAME_CONFIG.PIXEL_SIZE
-                }px`,
-              }}
-              width={GAME_CONFIG.PIXEL_WIDTH * GAME_CONFIG.PIXEL_SIZE * dpr}
-              height={GAME_CONFIG.PIXEL_HEIGHT * GAME_CONFIG.PIXEL_SIZE * dpr}
-            />
+            </div>
           </TransformComponent>
         </React.Fragment>
       )}
