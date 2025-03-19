@@ -345,16 +345,16 @@ export default function Canvas({ room }: CanvasProps) {
                   GAME_CONFIG.PIXEL_SIZE * instance.getContext().state.scale
                 }px`,
                 left: `${
-                  Math.floor(hoverPixelPosition.x) *
+                  Math.floor(hoverPixelPosition.x *
                     GAME_CONFIG.PIXEL_SIZE *
                     instance.getContext().state.scale +
-                  instance.getContext().state.positionX
+                  instance.getContext().state.positionX)
                 }px`,
                 top: `${
-                  Math.floor(hoverPixelPosition.y) *
+                  Math.floor(hoverPixelPosition.y *
                     GAME_CONFIG.PIXEL_SIZE *
                     instance.getContext().state.scale +
-                  instance.getContext().state.positionY
+                  instance.getContext().state.positionY)
                 }px`,
                 backgroundColor: selectedColor,
                 opacity: 0.6,
