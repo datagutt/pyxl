@@ -28,6 +28,6 @@
   "devDependencies": {
     "@pyxl/eslint-config": "workspace:*",
     "eslint": "^8.52.0",
-    "typescript": "^5.2.2"
+    "typescript": "^5.7.2"
   }
 }
