@@ -13,9 +13,12 @@ import superjson from "superjson";
 import type { AppRouter } from "@pyxl/api";
 
 const getBaseUrl = () => {
-  if (process.env.NODE_ENV === "production") return `https://api.pyxl.place`; // prod should use pyxl.place (or your domain)
-  //if (typeof window !== "undefined") return ""; // browser should use relative url
-  if (process.env.VERCEL_PROJECT_PRODUCTION_URL)
+  if (
+    process.env.NODE_ENV === "production" ||
+    process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+    process.env.VERCEL_URL ||
+    typeof window !== "undefined"
+  )
     return `https://api.pyxl.place`; // prod should use pyxl.place (or your domain)
 
   return `http://localhost:3001`; // dev SSR should use localhost

@@ -5,7 +5,7 @@
   "scripts": {
     "build": "pnpm next build --experimental-build-mode compile",
     "clean": "git clean -xdf .next .turbo node_modules",
-    "dev": "pnpm cross-env next dev",
+    "dev": "pnpm cross-env next dev --turbopack",
     "lint": "cross-env -v SKIP_ENV_VALIDATION=1 next lint",
     "lint:fix": "pnpm lint --fix",
     "start": "pnpm next start",
@@ -19,16 +19,16 @@
     "@pyxl/tailwind-config": "workspace:*",
     "@tanstack/react-query": "^5.49.2",
     "@tanstack/react-query-devtools": "^5.49.2",
-    "@trpc/client": "11.0.0-rc.498",
-    "@trpc/next": "11.0.0-rc.498",
-    "@trpc/react-query": "11.0.0-rc.498",
-    "@trpc/server": "11.0.0-rc.498",
+    "@trpc/client": "11.0.0-rc.840",
+    "@trpc/next": "11.0.0-rc.840",
+    "@trpc/react-query": "11.0.0-rc.840",
+    "@trpc/server": "11.0.0-rc.840",
     "@uiw/react-color-github": "^1.2.2",
     "cross-env": "7.0.3",
-    "next": "^14",
+    "next": "15.2.3",
     "next-auth": "^4.22.0",
-    "react": "^18",
-    "react-dom": "^18",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
     "react-zoom-pan-pinch": "^3.0.7",
     "superjson": "1.9.1",
     "zod": "^3.21.4"
@@ -36,13 +36,19 @@
   "devDependencies": {
     "@pyxl/eslint-config": "workspace:*",
     "@types/node": "^18.15.11",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
+    "@types/react": "19.0.12",
+    "@types/react-dom": "19.0.4",
     "autoprefixer": "^10.4.14",
     "dotenv-cli": "^7.1.0",
     "eslint": "^8.52.0",
     "postcss": "^8.4.21",
     "tailwindcss": "^3.3.1",
     "typescript": "^5.0.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "19.0.12",
+      "@types/react-dom": "19.0.4"
+    }
   }
 }
