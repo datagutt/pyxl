@@ -65,7 +65,21 @@ export const createTRPCContext = async (
    */
   let session: Session | null = null;
 
-  const sessionToken = opts?.info?.connectionParams?.sessionToken;
+  // For websocket connections, try to get session token from connectionParams first
+  let sessionToken = opts?.info?.connectionParams?.sessionToken;
+
+  // If no sessionToken from connectionParams, try to extract from request cookies
+  if (!sessionToken && opts.req?.headers?.cookie) {
+    const cookies = opts.req.headers.cookie;
+    const sessionCookie = cookies
+      .split(";")
+      .find(
+        (c) =>
+          c.trim().startsWith("__Secure-next-auth.session-token") ||
+          c.trim().startsWith("next-auth.session-token"),
+      );
+    sessionToken = sessionCookie?.split("=")[1];
+  }
 
   if (sessionToken) {
     opts.req = {

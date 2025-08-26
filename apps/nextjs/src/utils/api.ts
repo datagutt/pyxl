@@ -8,7 +8,6 @@ import {
 } from "@trpc/client";
 import { createTRPCNext } from "@trpc/next";
 import { ssrPrepass } from "@trpc/next/ssrPrepass";
-import { getSession } from "next-auth/react";
 import superjson from "superjson";
 
 import type { AppRouter } from "@pyxl/api";
@@ -59,12 +58,12 @@ function getEndingLink(ctx: NextPageContext | undefined) {
         }`;
       },
       connectionParams: async () => {
-        // On client-side, use next-auth's getSession for HTTP-only cookies
+        // Since we're using HTTP-only cookies, we can't access them from client-side JS
+        // We need to make an API call to get the session token or use a different approach
         if (typeof window !== "undefined") {
-          const session = await getSession();
-          return {
-            sessionToken: session?.access_token,
-          };
+          // For client-side connections, we'll let the server handle authentication
+          // by forwarding cookies via the websocket upgrade request
+          return {};
         }
 
         // On server-side (SSR), get session cookie from request headers
