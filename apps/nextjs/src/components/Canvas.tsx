@@ -40,9 +40,11 @@ export default function Canvas({ room }: CanvasProps) {
   const [hoverPixelPosition, setHoverPixelPosition] = useState<{
     x: number;
     y: number;
+    visible: boolean;
   }>({
     x: 0,
     y: 0,
+    visible: false,
   });
   const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1; // Get the device pixel ratio (default to 1 if undefined)
 
@@ -242,27 +244,78 @@ export default function Canvas({ room }: CanvasProps) {
   };
 
   const updateHoverPixelPosition = (ev: MouseEvent | TouchEvent) => {
+    if (isPanning) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    let clientX, clientY;
+
+    if (ev instanceof MouseEvent) {
+      clientX = ev.clientX;
+      clientY = ev.clientY;
+    } else if (ev.touches && ev.touches.length > 0) {
+      clientX = ev.touches[0]?.clientX;
+      clientY = ev.touches[0]?.clientY;
+    }
+
+    if (!clientX || !clientY) return;
+
+    // Check if mouse is over the canvas
+    const isOverCanvas =
+      clientX >= rect.left &&
+      clientX <= rect.right &&
+      clientY >= rect.top &&
+      clientY <= rect.bottom;
+
+    if (!isOverCanvas) {
+      setHoverPixelPosition((prev) => ({ ...prev, visible: false }));
+      return;
+    }
+
     const { x, y } = getPixelPos(ev);
-    setHoverPixelPosition({ x: Math.floor(x), y: Math.floor(y) });
+
+    // Check if coordinates are within bounds
+    const inBounds =
+      x >= 0 &&
+      x < GAME_CONFIG.PIXEL_WIDTH &&
+      y >= 0 &&
+      y < GAME_CONFIG.PIXEL_HEIGHT;
+
+    setHoverPixelPosition({
+      x: Math.floor(x),
+      y: Math.floor(y),
+      visible: inBounds,
+    });
+  };
+
+  const hideHoverPixel = () => {
+    setHoverPixelPosition((prev) => ({ ...prev, visible: false }));
   };
 
   useEffect(() => {
-    document.addEventListener("mousedown", onMouseDown);
-    document.addEventListener("touchstart", onTouchStart);
-    document.addEventListener("touchend", onTouchEnd);
-    document.addEventListener("touchmove", onTouchMove);
-    document.addEventListener("contextmenu", (ev) => ev.preventDefault());
-    document.addEventListener("mousemove", updateHoverPixelPosition);
-    document.addEventListener("touchmove", updateHoverPixelPosition);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    canvas.addEventListener("mousedown", onMouseDown);
+    canvas.addEventListener("touchstart", onTouchStart);
+    canvas.addEventListener("touchend", onTouchEnd);
+    canvas.addEventListener("touchmove", onTouchMove);
+    canvas.addEventListener("contextmenu", (ev) => ev.preventDefault());
+    canvas.addEventListener("mousemove", updateHoverPixelPosition);
+    canvas.addEventListener("touchmove", updateHoverPixelPosition);
+    canvas.addEventListener("mouseleave", hideHoverPixel);
 
     return () => {
-      document.removeEventListener("mousedown", onMouseDown);
-      document.removeEventListener("touchstart", onTouchStart);
-      document.removeEventListener("touchend", onTouchEnd);
-      document.removeEventListener("touchmove", onTouchMove);
-      document.removeEventListener("contextmenu", (ev) => ev.preventDefault());
-      document.removeEventListener("mousemove", updateHoverPixelPosition);
-      document.removeEventListener("touchmove", updateHoverPixelPosition);
+      canvas.removeEventListener("mousedown", onMouseDown);
+      canvas.removeEventListener("touchstart", onTouchStart);
+      canvas.removeEventListener("touchend", onTouchEnd);
+      canvas.removeEventListener("touchmove", onTouchMove);
+      canvas.removeEventListener("contextmenu", (ev) => ev.preventDefault());
+      canvas.removeEventListener("mousemove", updateHoverPixelPosition);
+      canvas.removeEventListener("touchmove", updateHoverPixelPosition);
+      canvas.removeEventListener("mouseleave", hideHoverPixel);
     };
   });
 
@@ -333,36 +386,40 @@ export default function Canvas({ room }: CanvasProps) {
               />
             </div>
           </div>
-          {hoverPixelPosition && instance && instance.getContext()?.state && (
-            <div
-              ref={hoverPixelRef}
-              className="pointer-events-none absolute z-10"
-              style={{
-                width: `${
-                  GAME_CONFIG.PIXEL_SIZE * instance.getContext().state.scale
-                }px`,
-                height: `${
-                  GAME_CONFIG.PIXEL_SIZE * instance.getContext().state.scale
-                }px`,
-                left: `${
-                  Math.floor(hoverPixelPosition.x *
-                    GAME_CONFIG.PIXEL_SIZE *
-                    instance.getContext().state.scale +
-                  instance.getContext().state.positionX)
-                }px`,
-                top: `${
-                  Math.floor(hoverPixelPosition.y *
-                    GAME_CONFIG.PIXEL_SIZE *
-                    instance.getContext().state.scale +
-                  instance.getContext().state.positionY)
-                }px`,
-                backgroundColor: selectedColor,
-                opacity: 0.6,
-                border: `1px solid rgba(0,0,0,0.8)`,
-                boxSizing: "border-box", // Ensure border is inside the width and height
-              }}
-            />
-          )}
+          {hoverPixelPosition.visible &&
+            instance &&
+            instance.getContext()?.state && (
+              <div
+                ref={hoverPixelRef}
+                className="pointer-events-none absolute z-20"
+                style={{
+                  width: `${
+                    GAME_CONFIG.PIXEL_SIZE * instance.getContext().state.scale
+                  }px`,
+                  height: `${
+                    GAME_CONFIG.PIXEL_SIZE * instance.getContext().state.scale
+                  }px`,
+                  left: `${Math.floor(
+                    hoverPixelPosition.x *
+                      GAME_CONFIG.PIXEL_SIZE *
+                      instance.getContext().state.scale +
+                      instance.getContext().state.positionX,
+                  )}px`,
+                  top: `${Math.floor(
+                    hoverPixelPosition.y *
+                      GAME_CONFIG.PIXEL_SIZE *
+                      instance.getContext().state.scale +
+                      instance.getContext().state.positionY,
+                  )}px`,
+                  backgroundColor: selectedColor,
+                  opacity: 0.7,
+                  border: `2px solid rgba(255,255,255,0.9)`,
+                  boxShadow: `0 0 0 1px rgba(0,0,0,0.5)`,
+                  borderRadius: "2px",
+                  transition: "opacity 0.1s ease-in-out",
+                }}
+              />
+            )}
           <TransformComponent
             wrapperStyle={{ width: "100%", height: "calc(100vh - 96px)" }}
           >
