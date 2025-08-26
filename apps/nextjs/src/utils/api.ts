@@ -8,6 +8,7 @@ import {
 } from "@trpc/client";
 import { createTRPCNext } from "@trpc/next";
 import { ssrPrepass } from "@trpc/next/ssrPrepass";
+import { getSession } from "next-auth/react";
 import superjson from "superjson";
 
 import type { AppRouter } from "@pyxl/api";
@@ -58,10 +59,15 @@ function getEndingLink(ctx: NextPageContext | undefined) {
         }`;
       },
       connectionParams: async () => {
-        const session = await proxy.auth.getSession.query();
-        console.log(session, ctx?.req?.headers);
-        console.log("token", session?.user?.access_token);
-        // get next auth session cookie
+        // On client-side, use next-auth's getSession for HTTP-only cookies
+        if (typeof window !== "undefined") {
+          const session = await getSession();
+          return {
+            sessionToken: session?.access_token,
+          };
+        }
+
+        // On server-side (SSR), get session cookie from request headers
         const cookie = ctx?.req?.headers.cookie
           ?.split(";")
           .find(
@@ -69,8 +75,7 @@ function getEndingLink(ctx: NextPageContext | undefined) {
               c.trim().startsWith("__Secure-next-auth.session-token") ||
               c.trim().startsWith("next-auth.session-token"),
           );
-        const sessionToken =
-          session?.user?.access_token ?? cookie?.split("=")[1];
+        const sessionToken = cookie?.split("=")[1];
         return {
           sessionToken,
         };
