@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
-import { signIn, signOut } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 
 import { api, type RouterOutputs } from "~/utils/api";
 
@@ -139,7 +139,7 @@ const Home: NextPage = () => {
 export default Home;
 
 const AuthShowcase: React.FC = () => {
-  const { data: session } = api.auth.getSession.useQuery();
+  const { data: session } = useSession();
 
   return (
     <div className="flex flex-col items-center justify-center gap-4">
